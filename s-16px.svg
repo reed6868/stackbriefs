@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="en" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">StackBriefs S Mark - Small</title>
+  <desc id="desc">Optically enlarged version for display sizes from 16 to 24 pixels.</desc>
+  <rect width="512" height="512" fill="#1739B8"/>
+  <g transform="translate(254 256) scale(1.45 1.25) translate(-254 -256)">
+    <g fill="#FFFFFF" transform="translate(42.5 12)">
+      <path transform="translate(264 139.8) rotate(4.5) scale(.96 .93) translate(-260.5 -144.5)" d="M216 107C236 93 272 96 294 114C317 133 323 162 310 181C301 194 288 199 275 195C255 189 237 173 219 158L198 140C186 129 197 116 216 107Z"/>
+      <path transform="translate(214.5 243.5) rotate(-2.5) scale(1.15 1.09) translate(-192.5 -231.5)" d="M159 144C146 133 133 132 122 143C106 158 106 185 119 210C137 246 171 275 204 301C231 322 257 329 272 316C290 300 279 273 262 249C240 217 211 191 184 164L159 144Z"/>
+      <path transform="translate(164.5 347.8) rotate(6) scale(1.05) translate(-173 -344.5)" d="M128 308C144 296 167 301 188 315L219 337C238 351 239 365 225 375C205 390 170 386 147 371C125 357 114 337 118 323C120 316 123 312 128 308Z"/>
+    </g>
+  </g>
+</svg>

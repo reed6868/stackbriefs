@@ -1,0 +1,9 @@
+{
+  "extends": "astro/tsconfigs/strictest",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "types": ["vitest/globals", "node"]
+  },
+  "include": [".astro/types.d.ts", "src"],
+  "exclude": ["dist"]
+}

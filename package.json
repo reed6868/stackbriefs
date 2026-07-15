@@ -1,0 +1,25 @@
+{
+  "name": "stackbriefs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:schema": "vitest run tests/content-schema.test.ts",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "7.0.2",
+    "@tailwindcss/vite": "4.3.2",
+    "astro": "7.0.7",
+    "tailwindcss": "4.3.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.9",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}
