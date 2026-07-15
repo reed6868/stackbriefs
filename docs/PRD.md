@@ -2,7 +2,7 @@
 
 **Author:** Product Manager
 **Date:** 2026-07-12
-**Status:** Draft product requirements
+**Status:** Approved product requirements
 **Product:** StackBriefs
 **Market:** English-language public web
 **Implementation plan:** [Toolify clone development plan](toolify-clone-development-plan.md)
@@ -11,7 +11,7 @@
 
 This PRD owns product boundaries, domain semantics, user journeys, product states, scope, metrics, risks, and acceptance criteria. It does not own frontend architecture, visual implementation, dependency selection, delivery sequencing, or development workflow.
 
-The repository currently contains package and TypeScript scaffolding but no application source, routes, content collections, domain modules, or tests. Requirements below describe the product contract and planned behavior, not implemented capability.
+The repository currently contains a minimal executable Astro scaffold: `src/pages/index.astro`, `src/layouts/BaseLayout.astro`, `src/styles/global.css`, and `tests/scaffold.test.ts`. `npm run test`, `npm run check`, and `npm run build` pass, with the build generating one static page. Content Collections, domain modules, planned product routes beyond `/`, and `tests/content-schema.test.ts` remain unimplemented; `npm run test:schema` is therefore expected to fail until schema work begins. Requirements below describe the product contract and planned behavior, not implemented product capability.
 
 ## 1. Product decision
 
