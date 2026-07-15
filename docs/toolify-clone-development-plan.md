@@ -3,7 +3,7 @@
 This document is the implementation source of truth. Product behavior and acceptance semantics belong to the [PRD](PRD.md). Toolify research, visual implementation rules, dependency policy, delivery order, and verification are consolidated here. External orchestration is out of scope.
 
 - Date: 2026-07-14
-- Status: Implementation plan; repository scaffold exists, application implementation has not started
+- Status: Implementation plan; minimal executable Astro scaffold exists, product implementation has not started
 - Scope: StackBriefs public Web frontend, Toolify-based UI migration, domain logic, static content delivery, implementation sequence, and release verification
 - Production repository: `/home/ja/stackbriefs`
 - Visual reference repository: `/home/ja/ai-website-cloner-template`
@@ -38,14 +38,15 @@ npm run build
 npm run preview
 ```
 
-The repository does not currently contain `src/`, `tests/`, an Astro config, application routes, or the files targeted by `test:schema`. The package files therefore prove dependency and script scaffolding only; they do not prove that the declared checks can pass or that any application behavior exists.
+The repository contains a minimal executable Astro scaffold: `astro.config.mjs`, `src/pages/index.astro`, `src/layouts/BaseLayout.astro`, `src/styles/global.css`, and `tests/scaffold.test.ts`. This baseline proves that the declared application harness and general verification commands execute; it does not implement the product contract.
 
-Repository verification on 2026-07-14:
+Repository verification on 2026-07-15:
 
-- `npm run check` exits successfully but warns that `src/pages` is missing;
-- `npm run build` exits successfully and builds `0` pages;
-- `npm run test` exits with code `1` because no test files exist;
-- `npm run test:schema` has no target file until `tests/content-schema.test.ts` is created.
+- `npm run test` passes the scaffold smoke test;
+- `npm run check` passes Astro and TypeScript validation;
+- `npm run build` passes and generates one static page;
+- Content Collections, domain modules, and the planned product routes beyond `/` are not implemented;
+- `tests/content-schema.test.ts` is not implemented, so `npm run test:schema` is expected to fail and is not a pass condition for the executable scaffold baseline.
 
 ---
 
