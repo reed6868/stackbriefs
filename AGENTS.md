@@ -14,7 +14,9 @@ This repository is an early Astro scaffold. `docs/PRD.md` defines product behavi
 - `npm run build` creates the static production output in `dist/`.
 - `npm run preview` serves the built output for final inspection.
 
-The current scaffold has no `src/` or `tests/`; builds produce no pages and tests cannot pass until implementation files are added.
+The repository includes a minimal static Astro entry page and smoke test so the
+baseline `check`, `test`, and `build` commands remain executable. Product routes,
+content schemas, and domain behavior must be added through scoped tasks.
 
 ## Coding Style & Naming Conventions
 
