@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" lang="en" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">StackBriefs S Mark - Small</title>
   <desc id="desc">Optically enlarged version for display sizes from 16 to 24 pixels.</desc>
-  <rect width="512" height="512" fill="#1739B8"/>
+  <rect width="512" height="512" fill="#2346C9"/>
   <g transform="translate(254 256) scale(1.45 1.25) translate(-254 -256)">
     <g fill="#FFFFFF" transform="translate(42.5 12)">
       <path transform="translate(264 139.8) rotate(4.5) scale(.96 .93) translate(-260.5 -144.5)" d="M216 107C236 93 272 96 294 114C317 133 323 162 310 181C301 194 288 199 275 195C255 189 237 173 219 158L198 140C186 129 197 116 216 107Z"/>
