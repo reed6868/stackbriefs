@@ -31,7 +31,8 @@ Before or inside the first product slice:
 2. separate browser application types from Node/Vitest test types so `src` cannot accidentally rely on `process`, `Buffer`, or Vitest globals;
 3. implement `tests/content-schema.test.ts` before treating `npm run test:schema` as a required passing gate;
 4. replace the current warm-cream placeholder stylesheet with the visual system in this plan;
-5. configure the production `site`, canonical policy, trailing-slash policy, and Cloudflare preview `noindex` behavior before release.
+5. configure the production `site` and one trailing-slash policy with the P0 route skeleton; configure Cloudflare Preview `noindex` before the first Preview deployment;
+6. reserve `release` as the only Cloudflare Pages Production branch so ordinary `main` merges remain Preview-only.
 
 Do not revert unrelated uncommitted repository changes while applying this plan.
 
@@ -214,8 +215,9 @@ Minimum schema contract:
 
 | Record | Required fields | Reference and validation rules |
 | --- | --- | --- |
-| Scenario/Tool route fields | `id`, `slug`, `status`, `lastReviewedAt`; optional `replacementSlug` | IDs/slugs are unique and immutable after first publication; `status` is `draft`, `published`, or `retired`; replacement must resolve to a published record of the same type. |
-| Scenario | `title`, `goal`, `suitableFor`, `notSuitableFor`, `dimensions[]`, `candidateIds[]`, `verificationChecklist[]` | Dimension and Candidate references are Scenario-local; dimension IDs and order are unique; production requires the PRD publication minimums. |
+| All structured records | `fixture` | Fixture provenance is explicit. Production validation excludes fixture records and rejects any non-fixture public projection that depends on a fixture-only record. |
+| Scenario/Tool route fields | `id`, `slug`, `status`, `lastReviewedAt`; optional `replacementSlug`, `firstPublishedAt` | IDs/slugs are unique and immutable after first publication; `status` is `draft`, `published`, or `retired`; replacement must resolve to a published record of the same type. `firstPublishedAt` is set when the record is first approved for Production promotion and is never removed or changed afterward. |
+| Scenario | `title`, `goal`, `prerequisites[]`, `suitableFor`, `notSuitableFor`, `dimensions[]`, `candidateIds[]`, `verificationChecklist[]` | Prerequisites are user-visible before filtering. Dimension and Candidate references are Scenario-local; dimension IDs and order are unique; production requires the PRD publication minimums. |
 | Dimension | `id`, `label`, `valueType`, `operator`, `order`; conditional `allowedValues`, `unit` | `valueType` is boolean, enum, number, or enum-set; operator is `eq`, `contains`, `lte`, or `gte` and must be compatible; values are finite and canonical. |
 | Tool | `name`, `summary`, `officialUrl`; optional `logo` | Official URL must be valid `https:`; Tool identity contains no Scenario fit, ranking, evidence state, or Offer conclusion. |
 | Scenario Candidate | `id`, `scenarioId`, `toolId`, `limitation`, `claimBindings`, `handsOnState` | Scenario/Tool pair is unique; references must resolve; hands-on state uses the PRD enum; decision outcomes are derived, never stored. |
@@ -240,7 +242,11 @@ An Astro-aware assembler validates references and converts collection entries in
 
 Core flow is Content Collections → validated Domain objects → publication validation → resolved evidence → candidate evaluation → static Decision projection → optional browser controller.
 
-Implement only `draft`, `published`, and `retired` editorial states. Publication validation may derive Scenario-local `blocked`; no approval digest, database, publication service, or runtime CMS is required. Two heterogeneous fixtures must use different dimension structures.
+Implement only `draft`, `published`, and `retired` editorial states. Publication validation may derive Scenario-local `blocked`; no approval digest, database, publication service, or runtime CMS is required. Use immutable `firstPublishedAt` to distinguish a never-published record from content that was previously published and later withdrawn, blocked, or retired.
+
+Two heterogeneous fixtures must use different dimension structures. Fixtures remain available to Development, Preview, automated tests, long-content cases, and broken-state cases, but Production discovery, generated public routes, sitemap, and structured data exclude every `fixture: true` projection. A non-fixture Scenario cannot reference fixture-only Candidates, Sources, Tools, or Offers.
+
+Pass one typed build target, `development | preview | production`, into publication assembly. Local development defaults to `development`; Cloudflare branch configuration supplies `preview` for non-release builds and `production` only for `release`. This target may remove fixture projections and apply Preview indexing policy, but it cannot change evidence, eligibility, ordering, explanations, or Affiliate-neutrality behavior.
 
 MDX is limited to trusted repository authors and long-form trust content. Do not accept raw user-authored MDX, untrusted HTML, or unvalidated scriptable content.
 
@@ -338,13 +344,14 @@ Tests ship in the same PR as the behavior they protect.
 Vitest covers:
 
 - heterogeneous content fixtures and broken references;
+- build-target fixture isolation and non-fixture-to-fixture reference rejection;
 - authority, scope, freshness, conflict, and unknown handling;
 - required/optional behavior and stable ordering;
 - zero-result alternatives;
 - URL round trips and shortlist normalization;
 - comparison scope and changing eligibility;
 - Affiliate-neutrality invariance;
-- lifecycle exposure and actionable validation errors.
+- lifecycle exposure, immutable `firstPublishedAt`, and actionable validation errors.
 
 ### Browser and visual tests
 
@@ -381,9 +388,11 @@ Release expectations:
 - no client-framework bundle or runtime third-party script;
 - LCP at or below `2.5s` and CLS at or below `0.1` in a representative mobile and desktop lab check;
 - no serious axe violation, uncaught console error, broken primary link, or unintended page overflow;
-- initial route JavaScript remains within a reviewed `50 KiB` gzip-equivalent budget unless a measured feature justifies a documented change;
+- initial route JavaScript remains within a reviewed `50 KiB` gzip-equivalent budget; a measured exception requires explicit Board approval;
 - preview smoke checks primary routes, redirects, canonical/noindex behavior, security headers, one core interaction, and JavaScript-disabled Decision content;
-- production deploys the passing commit and retains the previous Cloudflare deployment as the rollback target.
+- Cloudflare Pages uses `release` as its only Production branch; `main`, pull requests, and other branches remain Preview-only;
+- Board approval names the exact merged-main candidate commit before it is promoted without additional changes to `release`;
+- production deploys that exact passing commit. If a previous successful Production deployment exists, retain it as the rollback target; for the first deployment, record the absence of a predecessor and establish the successful release as the initial rollback baseline.
 
 Do not require literal browser user agents, fixed CDP profiles, three-run medians, every-file hashes, `/_release.json`, long-term release-evidence retention, or an Analytics collector for P0.
 
@@ -395,7 +404,7 @@ Responsive behavior, accessibility, tests, and screenshots are part of every pha
 
 - align Node and TypeScript/test configuration;
 - establish tokens, typography, shared shell, Header/Footer, mobile menu, Breadcrumbs, and StatusPage;
-- create all P0 routes using fixture content;
+- configure the production `site` and one trailing-slash policy, then create all P0 routes using fixture content;
 - implement Home Scenario rows and `/decision` redirect;
 - verify mobile, tablet, desktop, keyboard, and screenshots.
 
@@ -417,8 +426,10 @@ Responsive behavior, accessibility, tests, and screenshots are part of every pha
 
 - complete Methodology and Affiliate Disclosure content;
 - implement lifecycle pages/redirects, sitemap, robots, canonical metadata, Open Graph assets, headers, and link checks;
-- add at least one real, non-fixture Scenario that passes publication validation;
-- run the compact release chain, Cloudflare Preview smoke, production smoke, and rollback check.
+- approve one bounded production Scenario contract, build its independent source ledger, encode it, and pass a separate publication-readiness Gate;
+- configure GitHub-backed Cloudflare Pages Preview with `release` isolated as the Production branch;
+- run a verification-only release-candidate Gate; route failures to atomic blocking defect tasks rather than fixing them inside the Gate;
+- after Board approval, promote the exact candidate commit to `release`, then run a separate verification-only Production and rollback-readiness Gate.
 
 ## 13. Definition of done
 
@@ -426,10 +437,11 @@ P0 is complete when:
 
 - every PRD route and lifecycle state behaves as specified;
 - the complete Scenario-to-Official-Link journey works with keyboard, touch, and JavaScript disabled where applicable;
-- two heterogeneous fixtures and at least one real qualifying Scenario pass validation;
+- two heterogeneous fixtures pass Development/Preview validation, remain excluded from Production output, and at least one real qualifying Scenario passes publication validation;
 - Decision, Evidence, URL, Shortlist, Comparison, and Affiliate-neutrality tests pass;
 - Home ordering is stable and excludes commercial inputs;
 - Toolify reference geometry has been reimplemented without copied branding, content, assets, or runtime dependencies;
 - responsive, accessibility, screenshot, SEO, security-header, performance, and Preview smoke gates pass;
 - `npm run check`, `npm run test:schema`, `npm test`, and `npm run build` pass from a clean candidate commit;
-- the production deployment is smoke-tested and a last-known-good Cloudflare deployment remains available for rollback.
+- the Board-approved merged-main commit is promoted unchanged to the `release` branch and is the commit served by Cloudflare Production;
+- the production deployment is smoke-tested; an existing last-known-good Production deployment remains available for rollback, or the first successful deployment is truthfully recorded as the initial rollback baseline.
