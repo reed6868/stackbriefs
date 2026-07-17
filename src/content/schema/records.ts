@@ -30,7 +30,7 @@ const routeFieldsSchema = z
         message: "is allowed only when status is retired",
       });
     }
-    if (!record.fixture && record.status === "retired" && !record.firstPublishedAt) {
+    if (record.status === "retired" && !record.firstPublishedAt) {
       context.addIssue({
         code: "custom",
         path: ["firstPublishedAt"],

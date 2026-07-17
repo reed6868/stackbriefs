@@ -50,7 +50,7 @@ describe("P0 route skeleton", () => {
     );
 
     for (const source of routes) {
-      expect(source).toContain('data-fixture="true"');
+      expect(source).toContain("data-fixture");
       expect(source).toContain("Fixture preview");
     }
   });
@@ -79,7 +79,10 @@ describe("P0 route skeleton", () => {
       "../dist/affiliate-disclosure.html",
       "../dist/decision/meeting-assistants.html",
       "../dist/decision/writing-assistants.html",
-      "../dist/tool/fixture-tool.html",
+      "../dist/tool/alpha-writer.html",
+      "../dist/tool/bravo-draft.html",
+      "../dist/tool/charlie-meet.html",
+      "../dist/tool/delta-notes.html",
       "../dist/_redirects",
     ];
 
@@ -89,7 +92,7 @@ describe("P0 route skeleton", () => {
     const [meetingDecision, writingDecision, tool] = await Promise.all([
       readFile(new URL("../dist/decision/meeting-assistants.html", import.meta.url), "utf8"),
       readFile(new URL("../dist/decision/writing-assistants.html", import.meta.url), "utf8"),
-      readFile(new URL("../dist/tool/fixture-tool.html", import.meta.url), "utf8"),
+      readFile(new URL("../dist/tool/alpha-writer.html", import.meta.url), "utf8"),
     ]);
 
     for (const decision of [meetingDecision, writingDecision]) {

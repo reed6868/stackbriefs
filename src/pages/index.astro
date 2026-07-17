@@ -1,29 +1,56 @@
 ---
 import ScenarioRow from "../components/ScenarioRow.astro";
-import { homeScenarios, sortHomeScenarios } from "../fixtures/home-scenarios";
+import { assembleContentCollections } from "../content/assemble";
+import { publicationOptionsFromEnvironment } from "../content/build-context";
+import { sortHomeScenarios, type HomeScenario } from "../domain/home-discovery";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-const scenarios = sortHomeScenarios(homeScenarios);
+interface Props {
+  scenarios?: readonly HomeScenario[];
+}
+
+async function loadPublishedScenarios() {
+  const publication = await assembleContentCollections(publicationOptionsFromEnvironment());
+  return publication.scenarioOutcomes.flatMap((outcome) =>
+    outcome.kind === "published"
+      ? [{
+          slug: outcome.slug,
+          title: outcome.scenario.title,
+          goal: outcome.scenario.goal,
+          prerequisite: outcome.scenario.prerequisites.join(" "),
+          suitableFor: outcome.scenario.suitableFor,
+          notSuitableFor: outcome.scenario.notSuitableFor,
+          candidateCount: outcome.scenario.candidates.length,
+          dimensionCount: outcome.scenario.dimensions.length,
+          lastReviewedAt: outcome.scenario.lastReviewedAt,
+          fixture: outcome.fixture,
+        }]
+      : [],
+  );
+}
+
+const scenarios = sortHomeScenarios(Astro.props.scenarios ?? await loadPublishedScenarios());
+const fixturePreview = scenarios.some((scenario) => scenario.fixture);
 ---
 
 <BaseLayout
   title="StackBriefs — scenario-first AI tool decisions"
   description="Start with a use case, narrow the options, and verify AI-tool trade-offs."
 >
-  <header class="home-hero" aria-labelledby="home-title" data-fixture="true">
-    <p class="fixture-label">Fixture preview</p>
+  <header class="home-hero" aria-labelledby="home-title" data-fixture={fixturePreview ? "true" : undefined}>
+    <p class="fixture-label">{fixturePreview ? "Fixture preview" : "Decision workspace"}</p>
     <h1 id="home-title">Start with a use case. Narrow the options. Choose with confidence.</h1>
     <p>
       Compare AI tools inside a concrete decision context, with explicit boundaries, current evidence, and no universal winner.
     </p>
-    <a class="home-hero__action" href="#scenarios">Browse fixture scenarios</a>
+    <a class="home-hero__action" href="#scenarios">Browse scenarios</a>
   </header>
 
-  <section id="scenarios" class="home-section" aria-labelledby="scenarios-title" data-fixture="true">
+  <section id="scenarios" class="home-section" aria-labelledby="scenarios-title" data-fixture={fixturePreview ? "true" : undefined}>
     <div class="home-section__heading">
       <p class="fixture-label">Scenario discovery</p>
       <h2 id="scenarios-title">Choose the decision you are making</h2>
-      <p>Each fixture demonstrates a different goal, boundary, and set of decision dimensions.</p>
+      <p>Each Scenario defines a different goal, boundary, and set of decision dimensions.</p>
     </div>
     <div class="scenario-list">
       {scenarios.map((scenario) => <ScenarioRow scenario={scenario} />)}

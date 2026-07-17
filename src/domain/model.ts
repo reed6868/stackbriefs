@@ -5,6 +5,7 @@ import type {
   ScenarioContent,
   SourceContent,
   ToolContent,
+  PublicationHistory,
 } from "../content/schema";
 
 export type BuildTarget = "development" | "preview" | "production";
@@ -12,6 +13,15 @@ export type BuildTarget = "development" | "preview" | "production";
 export interface PublicationOptions {
   target: BuildTarget;
   asOf: string;
+  publicationHistory?: PublicationHistory;
+  gatingClaims?: readonly GatingClaimReadiness[];
+}
+
+export interface GatingClaimReadiness {
+  candidateId: string;
+  dimensionId: string;
+  state: "current" | "stale" | "missing";
+  reason: string;
 }
 
 export interface PublicationIssue {
@@ -56,7 +66,7 @@ export interface PublishedScenarioOutcome extends RouteOutcomeBase {
 
 export interface HiddenScenarioOutcome extends RouteOutcomeBase {
   kind: "hidden";
-  reason: "draft" | "fixture_excluded";
+  reason: "draft" | "fixture_excluded" | "never_published";
 }
 
 export interface BlockedScenarioOutcome extends RouteOutcomeBase {
@@ -95,7 +105,7 @@ export interface ExposedToolOutcome extends RouteOutcomeBase {
 
 export interface HiddenToolOutcome extends RouteOutcomeBase {
   kind: "hidden";
-  reason: "draft" | "fixture_excluded" | "not_exposed";
+  reason: "draft" | "fixture_excluded" | "not_exposed" | "never_published";
 }
 
 export interface BlockedToolOutcome extends RouteOutcomeBase {

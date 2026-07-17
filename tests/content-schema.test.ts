@@ -310,16 +310,9 @@ describe("authoritative content schema", () => {
     expect(() =>
       toolSchema.parse({
         ...baseGraph.tools[0],
-        fixture: false,
         status: "retired",
       }),
     ).toThrow(/previously published/i);
-    expect(() =>
-      toolSchema.parse({
-        ...baseGraph.tools[0],
-        status: "retired",
-      }),
-    ).not.toThrow();
     expect(() =>
       toolSchema.parse({
         ...baseGraph.tools[0],

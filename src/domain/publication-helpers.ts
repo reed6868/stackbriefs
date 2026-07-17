@@ -1,13 +1,5 @@
-import type { ScenarioContent, SourceContent, ToolContent } from "../content/schema";
+import type { ScenarioContent, ToolContent } from "../content/schema";
 import type { BuildTarget, PublicationIssue } from "./model";
-
-const MAX_GATING_AGE_DAYS = 90;
-const DAY_MS = 86_400_000;
-
-function isoDay(value: string) {
-  const [year, month, day] = value.split("-").map(Number);
-  return Date.UTC(year!, month! - 1, day!);
-}
 
 export function publicationIssue(code: string, path: string, message: string): PublicationIssue {
   return { code, path, message };
@@ -21,14 +13,6 @@ export function sortPublicationIssues(issues: readonly PublicationIssue[]) {
 
 export function fixtureExcluded(fixture: boolean, target: BuildTarget) {
   return fixture && target === "production";
-}
-
-export function sourceIsCurrent(source: SourceContent, asOf: string) {
-  const ageDays = (isoDay(asOf) - isoDay(source.lastCheckedAt)) / DAY_MS;
-  if (ageDays < 0 || ageDays > MAX_GATING_AGE_DAYS) return false;
-  if (source.effectiveFrom && source.effectiveFrom > asOf) return false;
-  if (source.effectiveTo && source.effectiveTo < asOf) return false;
-  return true;
 }
 
 export function validateReplacement(

@@ -4,6 +4,7 @@ import type {
   DomainCandidate,
   DomainClaim,
   DomainScenario,
+  GatingClaimReadiness,
   PublicationIssue,
   PublicationOptions,
   ScenarioPublicationOutcome,
@@ -12,7 +13,6 @@ import {
   fixtureExcluded,
   publicationIssue,
   sortPublicationIssues,
-  sourceIsCurrent,
   validateReplacement,
 } from "./publication-helpers";
 
@@ -20,12 +20,16 @@ function assemblePublishedScenario(
   scenario: ScenarioContent,
   graph: ContentGraph,
   options: PublicationOptions,
+  referenceIssues: readonly PublicationIssue[],
 ): ScenarioPublicationOutcome {
   const path = `scenarios[${scenario.id}]`;
-  const issues: PublicationIssue[] = [];
+  const issues: PublicationIssue[] = [...referenceIssues];
   const candidatesById = new Map(graph.candidates.map((candidate) => [candidate.id, candidate]));
   const toolsById = new Map(graph.tools.map((tool) => [tool.id, tool]));
   const domainCandidates: DomainCandidate[] = [];
+  const readinessByClaim = new Map(
+    (options.gatingClaims ?? []).map((readiness) => [`${readiness.candidateId}:${readiness.dimensionId}`, readiness]),
+  );
 
   if (!scenario.fixture && scenario.candidateIds.length < 3) {
     issues.push(
@@ -97,12 +101,29 @@ function assemblePublishedScenario(
         );
         return;
       }
-      if (!sources.some((source) => sourceIsCurrent(source, options.asOf))) {
+      const readiness = readinessByClaim.get(`${candidate.id}:${dimension.id}`) as GatingClaimReadiness | undefined;
+      if (readiness?.state === "stale") {
         issues.push(
           publicationIssue(
             "stale_gating_claim",
             claimPath,
-            `Dimension "${dimension.id}" has no Source current at ${options.asOf}`,
+            `Dimension "${dimension.id}" is stale: ${readiness.reason}`,
+          ),
+        );
+      } else if (readiness?.state === "missing") {
+        issues.push(
+          publicationIssue(
+            "missing_gating_evidence",
+            claimPath,
+            `Dimension "${dimension.id}" is unresolved: ${readiness.reason}`,
+          ),
+        );
+      } else if (!scenario.fixture && readiness?.state !== "current") {
+        issues.push(
+          publicationIssue(
+            "unresolved_gating_claim",
+            claimPath,
+            `Dimension "${dimension.id}" requires a current evidence-readiness result before publication`,
           ),
         );
       }
@@ -145,10 +166,14 @@ function assemblePublishedScenario(
   return { kind: "published", id: scenario.id, slug: scenario.slug, fixture: scenario.fixture, scenario: domainScenario };
 }
 
-export function assembleScenarioOutcomes(graph: ContentGraph, options: PublicationOptions) {
+export function assembleScenarioOutcomes(
+  graph: ContentGraph,
+  options: PublicationOptions,
+  referenceIssues: ReadonlyMap<string, readonly PublicationIssue[]>,
+) {
   const scenariosBySlug = new Map(graph.scenarios.map((scenario) => [scenario.slug, scenario]));
 
-  return [...graph.scenarios]
+  const initialOutcomes = [...graph.scenarios]
     .sort((left, right) => left.slug.localeCompare(right.slug, "en"))
     .map((scenario): ScenarioPublicationOutcome => {
       if (fixtureExcluded(scenario.fixture, options.target)) {
@@ -156,6 +181,14 @@ export function assembleScenarioOutcomes(graph: ContentGraph, options: Publicati
       }
       if (scenario.status === "draft") {
         if (scenario.firstPublishedAt) {
+          const issues = [
+            ...(referenceIssues.get(scenario.id) ?? []),
+            publicationIssue(
+              "temporarily_withdrawn",
+              `scenarios[${scenario.id}].status`,
+              "previously published Scenario is currently withdrawn",
+            ),
+          ];
           return {
             kind: "blocked",
             id: scenario.id,
@@ -163,18 +196,21 @@ export function assembleScenarioOutcomes(graph: ContentGraph, options: Publicati
             fixture: scenario.fixture,
             title: scenario.title,
             firstPublishedAt: scenario.firstPublishedAt,
-            issues: [
-              publicationIssue(
-                "temporarily_withdrawn",
-                `scenarios[${scenario.id}].status`,
-                "previously published Scenario is currently withdrawn",
-              ),
-            ],
+            issues: sortPublicationIssues(issues),
           };
         }
         return { kind: "hidden", id: scenario.id, slug: scenario.slug, fixture: scenario.fixture, reason: "draft" };
       }
       if (scenario.status === "retired") {
+        if (!scenario.firstPublishedAt) {
+          return {
+            kind: "hidden",
+            id: scenario.id,
+            slug: scenario.slug,
+            fixture: scenario.fixture,
+            reason: "never_published",
+          };
+        }
         if (!scenario.replacementSlug) {
           return {
             kind: "retired",
@@ -209,6 +245,28 @@ export function assembleScenarioOutcomes(graph: ContentGraph, options: Publicati
           statusCode: 301,
         };
       }
-      return assemblePublishedScenario(scenario, graph, options);
+      return assemblePublishedScenario(scenario, graph, options, referenceIssues.get(scenario.id) ?? []);
     });
+
+  const outcomesBySlug = new Map(initialOutcomes.map((outcome) => [outcome.slug, outcome]));
+  return initialOutcomes.map((outcome): ScenarioPublicationOutcome => {
+    if (outcome.kind !== "replacement") return outcome;
+    const target = outcomesBySlug.get(outcome.redirectTo.slug);
+    if (target?.kind === "published") return outcome;
+    return {
+      kind: "blocked",
+      id: outcome.id,
+      slug: outcome.slug,
+      fixture: outcome.fixture,
+      title: outcome.title,
+      firstPublishedAt: outcome.firstPublishedAt,
+      issues: [
+        publicationIssue(
+          "invalid_replacement",
+          `scenarios[${outcome.id}].replacementSlug`,
+          `replacement "${outcome.redirectTo.slug}" does not produce a published Scenario outcome`,
+        ),
+      ],
+    };
+  });
 }

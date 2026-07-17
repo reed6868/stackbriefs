@@ -122,9 +122,18 @@ describe("publication assembly", () => {
 
   it("blocks stale gating claims without blocking an unrelated fresh Scenario", async () => {
     const graph = await loadGraph();
-    graph.sources.find((source) => source.id === "source-writing-alpha-commercial")!.lastCheckedAt = "2025-01-01";
 
-    const assembly = assemblePublication(graph, development);
+    const assembly = assemblePublication(graph, {
+      ...development,
+      gatingClaims: [
+        {
+          candidateId: "candidate-writing-alpha",
+          dimensionId: "commercial-use",
+          state: "stale",
+          reason: "evidence resolver marked the gating claim stale",
+        },
+      ],
+    });
     const writing = scenarioOutcome(assembly, "writing-assistants");
 
     expect(writing.kind).toBe("blocked");
@@ -134,6 +143,7 @@ describe("publication assembly", () => {
       );
     }
     expect(scenarioOutcome(assembly, "meeting-assistants").kind).toBe("published");
+    expect(assembly.releaseReady).toBe(true);
   });
 
   it("derives draft, retired, replacement, and invalid-replacement outcomes", async () => {
@@ -143,8 +153,9 @@ describe("publication assembly", () => {
 
     const retired = await loadGraph();
     retired.scenarios[0]!.status = "retired";
-    expect(scenarioOutcome(assemblePublication(retired, development), "writing-assistants").kind).toBe("retired");
+    expect(scenarioOutcome(assemblePublication(retired, development), "writing-assistants").kind).toBe("hidden");
 
+    retired.scenarios[0]!.firstPublishedAt = "2026-07-10";
     retired.scenarios[0]!.replacementSlug = "meeting-assistants";
     const replacement = scenarioOutcome(assemblePublication(retired, development), "writing-assistants");
     expect(replacement).toMatchObject({
@@ -158,6 +169,25 @@ describe("publication assembly", () => {
     expect(invalid.kind).toBe("blocked");
     if (invalid.kind === "blocked") {
       expect(invalid.issues).toContainEqual(expect.objectContaining({ code: "invalid_replacement" }));
+    }
+  });
+
+  it("rejects a replacement whose raw record is published but final outcome is blocked", async () => {
+    const graph = await loadGraph();
+    graph.scenarios[0]!.status = "retired";
+    graph.scenarios[0]!.firstPublishedAt = "2026-07-10";
+    graph.scenarios[0]!.replacementSlug = "meeting-assistants";
+    graph.tools.find((tool) => tool.id === "tool-charlie")!.status = "draft";
+
+    const outcome = scenarioOutcome(assemblePublication(graph, development), "writing-assistants");
+    expect(outcome.kind).toBe("blocked");
+    if (outcome.kind === "blocked") {
+      expect(outcome.issues).toContainEqual(
+        expect.objectContaining({
+          code: "invalid_replacement",
+          message: expect.stringContaining("does not produce a published Scenario outcome"),
+        }),
+      );
     }
   });
 
@@ -218,7 +248,7 @@ describe("publication assembly", () => {
   it("produces stable ordering and actionable validation messages", async () => {
     const graph = await loadGraph();
     graph.candidates[0]!.toolId = "tool-missing";
-    graph.sources[0]!.lastCheckedAt = "2025-01-01";
+    graph.sources[0]!.observedValue = "invalid-boolean";
     const reversed = {
       scenarios: [...graph.scenarios].reverse(),
       tools: [...graph.tools].reverse(),

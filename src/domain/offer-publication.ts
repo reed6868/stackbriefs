@@ -2,7 +2,12 @@ import type { ContentGraph } from "../content/schema";
 import type { BuildTarget, DomainOffer, PublicationIssue } from "./model";
 import { fixtureExcluded, publicationIssue, sortPublicationIssues } from "./publication-helpers";
 
-export function assembleOffers(graph: ContentGraph, exposedToolIds: ReadonlySet<string>, target: BuildTarget) {
+export function assembleOffers(
+  graph: ContentGraph,
+  exposedToolIds: ReadonlySet<string>,
+  target: BuildTarget,
+  initialIssues: ReadonlyMap<string, readonly PublicationIssue[]> = new Map(),
+) {
   const toolsById = new Map(graph.tools.map((tool) => [tool.id, tool]));
   const sourcesById = new Map(graph.sources.map((source) => [source.id, source]));
   const offers: DomainOffer[] = [];
@@ -13,6 +18,8 @@ export function assembleOffers(graph: ContentGraph, exposedToolIds: ReadonlySet<
     .forEach((offer) => {
       if (fixtureExcluded(offer.fixture, target)) return;
       const path = `offers[${offer.id}]`;
+      const offerDiagnostics = initialIssues.get(offer.id) ?? [];
+      issues.push(...offerDiagnostics);
       const tool = toolsById.get(offer.toolId);
       if (!tool) {
         issues.push(
@@ -36,7 +43,7 @@ export function assembleOffers(graph: ContentGraph, exposedToolIds: ReadonlySet<
         }
         return [source];
       });
-      if (issues.some((offerIssue) => offerIssue.path.startsWith(path))) return;
+      if (offerDiagnostics.length > 0 || issues.some((offerIssue) => offerIssue.path.startsWith(path))) return;
       if (!exposedToolIds.has(tool.id)) return;
       offers.push({ ...offer, tool, evidence });
     });

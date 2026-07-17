@@ -1,9 +1,17 @@
 import type {
+  BlockedScenarioOutcome,
+  BlockedToolOutcome,
   BuildTarget,
   PublicContentInputs,
   ScenarioPublicationOutcome,
   ToolPublicationOutcome,
 } from "./model";
+
+function hasPublicStatusRoute(
+  outcome: BlockedScenarioOutcome | BlockedToolOutcome | { kind: "retired"; firstPublishedAt?: string | undefined },
+) {
+  return outcome.firstPublishedAt !== undefined;
+}
 
 export function assemblePublicInputs(
   scenarioOutcomes: readonly ScenarioPublicationOutcome[],
@@ -13,19 +21,18 @@ export function assemblePublicInputs(
   const publishedScenarios = scenarioOutcomes.filter((outcome) => outcome.kind === "published");
   const statusScenarios = scenarioOutcomes.filter(
     (outcome) =>
-      outcome.kind === "retired" ||
-      (outcome.kind === "blocked" && (outcome.fixture || outcome.firstPublishedAt !== undefined)),
+      (outcome.kind === "retired" || outcome.kind === "blocked") && hasPublicStatusRoute(outcome),
   );
   const redirects = scenarioOutcomes.filter((outcome) => outcome.kind === "replacement");
   const exposedTools = toolOutcomes.filter((outcome) => outcome.kind === "exposed-tool");
   const statusTools = toolOutcomes.filter(
     (outcome) =>
-      outcome.kind === "retired" ||
-      (outcome.kind === "blocked" && (outcome.fixture || outcome.firstPublishedAt !== undefined)),
+      (outcome.kind === "retired" || outcome.kind === "blocked") && hasPublicStatusRoute(outcome),
   );
   const toolRedirects = toolOutcomes.filter((outcome) => outcome.kind === "replacement");
   const decisionPaths = publishedScenarios.map((outcome) => `/decision/${outcome.slug}`);
   const toolPaths = exposedTools.map((outcome) => `/tool/${outcome.slug}`);
+  const discoveryPaths = [...decisionPaths, ...toolPaths].sort((left, right) => left.localeCompare(right, "en"));
 
   return {
     discoveryScenarioSlugs: publishedScenarios.map((outcome) => outcome.slug),
@@ -43,8 +50,8 @@ export function assemblePublicInputs(
       to: outcome.redirectTo.href,
       statusCode: 301,
     })),
-    sitemapPaths: [...decisionPaths, ...toolPaths].sort((left, right) => left.localeCompare(right, "en")),
-    structuredDataPaths: [...decisionPaths, ...toolPaths].sort((left, right) => left.localeCompare(right, "en")),
+    sitemapPaths: discoveryPaths,
+    structuredDataPaths: discoveryPaths,
     indexable: target === "production",
   };
 }

@@ -1,8 +1,10 @@
 import { getCollection } from "astro:content";
 
 import type { ContentGraph } from "./schema";
+import { publicationHistorySchema } from "./schema";
 import { assemblePublication } from "../domain/publication";
 import type { PublicationAssembly, PublicationOptions } from "../domain/model";
+import publicationHistoryData from "./publication-history.json";
 
 export async function assembleContentCollections(options: PublicationOptions): Promise<PublicationAssembly> {
   const [scenarios, tools, candidates, sources, offers] = await Promise.all([
@@ -20,5 +22,8 @@ export async function assembleContentCollections(options: PublicationOptions): P
     sources: sources.map((entry) => entry.data),
     offers: offers.map((entry) => entry.data),
   };
-  return assemblePublication(graph, options);
+  return assemblePublication(graph, {
+    ...options,
+    publicationHistory: options.publicationHistory ?? publicationHistorySchema.parse(publicationHistoryData),
+  });
 }
