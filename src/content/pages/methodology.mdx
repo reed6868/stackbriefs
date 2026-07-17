@@ -1,9 +1,144 @@
 ---
 fixture: false
 title: Methodology
-description: How StackBriefs separates evidence, matching, limitations, and commercial data.
-status: draft
-lastReviewedAt: "2026-07-16"
+description: How StackBriefs matches tools, resolves evidence, and keeps commercial data outside decisions.
+status: published
+lastReviewedAt: "2026-07-17"
+firstPublishedAt: "2026-07-17"
 ---
 
-This trusted repository-authored page is reserved for the reviewed methodology content.
+<nav aria-label="On this page" class="on-this-page">
+  <h2>On this page</h2>
+  <ul>
+    <li><a href="#how-matching-works">How matching works</a></li>
+    <li><a href="#required-conditions">Required conditions</a></li>
+    <li><a href="#optional-preferences">Optional preferences</a></li>
+    <li><a href="#unknown-evidence-and-zero-results">Unknown evidence and zero results</a></li>
+    <li><a href="#evidence-states">Evidence states</a></li>
+    <li><a href="#evidence-authority-and-scope">Evidence authority and scope</a></li>
+    <li><a href="#freshness-windows-and-conflicts">Freshness windows and conflicts</a></li>
+    <li><a href="#hands-on-status-and-corrections">Hands-on status and corrections</a></li>
+    <li><a href="#commercial-neutrality">Commercial neutrality</a></li>
+  </ul>
+</nav>
+
+## How matching works
+
+StackBriefs starts with a specific Scenario rather than a universal tool list. Each Scenario defines its own goal, boundaries, decision dimensions, supported values, and candidates. A tool can match one Scenario and fail or remain unknown in another.
+
+You choose one value for each active dimension and mark it required or optional. The supported operators are equality, set containment, less than or equal, and greater than or equal. StackBriefs does not infer free-text intent, synonyms, ranges, negation, or OR groups.
+
+Results use the same normalized input every time. Candidates are ordered by normalized tool name and then stable slug. Content file order, popularity, and commercial fields are not ordering inputs. You can inspect this behavior in the [writing assistants Decision](/decision/writing-assistants).
+
+## Required conditions
+
+Required conditions combine with logical AND. A candidate remains in the formal result only when every required condition resolves to a known match.
+
+- A known match passes the condition.
+- A known mismatch excludes the candidate.
+- Unknown evidence also excludes the candidate from the formal result, but it remains labeled as unknown rather than being presented as a known mismatch.
+- An explicit not-applicable claim is a known non-match for the selected condition.
+
+Explanations follow the Scenario's dimension order and include the candidate's limitation. StackBriefs does not silently substitute a value or treat missing evidence as a match.
+
+## Optional preferences
+
+Optional preferences add explanation without changing membership, default order, alternatives, or comparison conclusions. A candidate can therefore remain in the result when an optional preference does not match or cannot be evaluated.
+
+The shortlist is user-controlled and stays scoped to the current Scenario. You can shortlist up to four tools and compare two to four. Comparison shows the same Scenario dimensions, evidence states, check dates, and limitations without adding a separate ranking conclusion.
+
+## Unknown evidence and zero results
+
+Unknown evidence means StackBriefs cannot evaluate the selected condition from a current verified fact. The reason may be missing evidence, stale evidence, an editorial assessment, conflicting evidence, or an incompatible canonical value. Unknown is not converted into yes or no.
+
+When required conditions produce **Zero results**, StackBriefs identifies a condition that you can deliberately make optional when doing so would allow at least one candidate through all remaining required conditions. The site never relaxes a requirement without your action. If no single relaxation helps, it leaves the empty result in place.
+
+## Evidence states
+
+Every claim exposes one public state. The state describes what the current evidence supports; it is not a probability or a rating.
+
+<div class="table-scroll" role="region" aria-label="Evidence state reference" tabindex="0">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Public label</th>
+        <th scope="col">Meaning</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Verified fact</td>
+        <td>Current qualifying evidence supports one canonical value.</td>
+      </tr>
+      <tr>
+        <td>Editorial assessment</td>
+        <td>A current, visibly labeled judgment is available, but it cannot satisfy a required condition.</td>
+      </tr>
+      <tr>
+        <td>Not verified</td>
+        <td>No current qualifying or editorial evidence matches the claim and material scope.</td>
+      </tr>
+      <tr>
+        <td>Needs recheck</td>
+        <td>Previously qualifying evidence is stale and no longer supplies a current value.</td>
+      </tr>
+      <tr>
+        <td>Not applicable</td>
+        <td>Current qualifying evidence explicitly says the claim does not apply.</td>
+      </tr>
+      <tr>
+        <td>Conflicting</td>
+        <td>Current evidence at the same highest available authority supports different canonical values.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+## Evidence authority and scope
+
+Evidence authority depends on both the source type and the claim type. Relevant official legal, pricing, documentation, release-note, plan-interface, and direct StackBriefs test observations may act as primary evidence. Direct product and help pages may qualify for the claim they state. Explicit StackBriefs editorial observations remain editorial assessments.
+
+Directories, search results, social posts, community reports, and independent reviews may help discover or corroborate a claim, but they cannot independently establish a verified fact.
+
+Evidence must match the subject, claim, canonical value, and material scope. Scope can include plan, region, platform, or version. Evidence from the wrong scope neither proves nor disproves the requested claim.
+
+## Freshness windows and conflicts
+
+### Freshness windows
+
+The default windows are:
+
+- **7 days** for deals and tracking status;
+- **30 days** for price and plan claims;
+- **90 days** for capabilities, integrations, privacy, rights, region, export, and general research.
+
+Freshness begins at the source's check date and can end earlier when the source includes an earlier effective end date. A future-dated observation does not qualify. At expiry, the browser may downgrade deployed evidence, but it never upgrades evidence. A stale verified fact becomes **Needs recheck** and loses its current value.
+
+### Conflicting evidence
+
+Resolution uses the highest qualifying authority currently available. If observations at that authority support different canonical values, the result is **Conflicting evidence**. Source count, commission, and relative recency do not break an equal-authority conflict. The conflict remains visible until current evidence resolves it.
+
+## Hands-on status and corrections
+
+### Hands-on status
+
+Hands-on labels describe StackBriefs' direct testing boundary separately from claim evidence:
+
+- **tested** means the evaluated flow was directly exercised;
+- **partially tested** means only part of the evaluated flow was exercised;
+- **not tested** means the conclusion relies on sources rather than direct product testing;
+- **unavailable** means hands-on testing could not be completed.
+
+These labels do not upgrade a claim's evidence state, and public copy does not imply direct experience when no test occurred.
+
+### Corrections
+
+StackBriefs content is maintained in a reviewed repository. A correction can change public content only after it passes the same schema, reference, scope, freshness, and publication checks as the original claim. Vendor identity, payment, or a submitted assertion does not bypass those checks. StackBriefs does not provide self-publishing in the current product.
+
+## Commercial neutrality
+
+The neutral **Official Link** is the default vendor destination. An **Evidence Link** cites a claim. An optional **Offer Link** is a separately labeled Affiliate destination with status, scope, terms, check date, and compensation disclosure.
+
+Offer presence, Affiliate status, network, commission, and commercial value cannot create a candidate, resolve unknown evidence, change eligibility or order, alter explanations, or change comparison conclusions. A free plan, paid plan, trial, or price is a product fact and is not automatically an Offer. Research-only, expired, rejected, stale, future-dated, wrong-scope, or unverifiable commercial records cannot render an active Offer call to action.
+
+Read the separate [Affiliate disclosure](/affiliate-disclosure) for the commercial-link policy and compensation notice.

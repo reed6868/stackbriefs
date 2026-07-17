@@ -1,20 +1,27 @@
 ---
+import { getEntry, render } from "astro:content";
+
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const page = await getEntry("pages", "methodology");
+if (!page) throw new Error("Methodology page content is required");
+const { Content } = await render(page);
 ---
 
 <BaseLayout
-  title="Methodology | StackBriefs"
-  description="Fixture placeholder for the StackBriefs Methodology page."
+  title={`${page.data.title} | StackBriefs`}
+  description={page.data.description}
   reading
   breadcrumbs={[{ label: "Home", href: "/" }, { label: "Methodology" }]}
 >
-  <article data-fixture="true">
-    <p class="fixture-label">Fixture preview</p>
-    <h1>Methodology</h1>
-    <p>
-      This non-production placeholder reserves the reading layout for matching, evidence states, freshness, conflicts, corrections, hands-on status, and commercial neutrality.
-    </p>
-    <h2>Final content arrives later</h2>
-    <p>The complete reviewed Methodology copy is owned by SB-401.</p>
+  <article class="trusted-content">
+    <header class="trusted-content__header">
+      <h1>{page.data.title}</h1>
+      <p class="trusted-content__lede">{page.data.description}</p>
+      <p class="trusted-content__meta">
+        Last reviewed <time datetime={page.data.lastReviewedAt}>{page.data.lastReviewedAt}</time>
+      </p>
+    </header>
+    <Content />
   </article>
 </BaseLayout>

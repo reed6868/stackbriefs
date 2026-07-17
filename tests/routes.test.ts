@@ -52,6 +52,7 @@ describe("P0 route skeleton", () => {
     const routes = await Promise.all(
       fixtureRoutePaths
         .filter((path) => !path.includes("decision/") && !path.includes("tool/"))
+        .filter((path) => !path.endsWith("methodology.astro"))
         .map((path) => readFile(new URL(path, import.meta.url), "utf8")),
     );
 
