@@ -1,0 +1,29 @@
+---
+type Status = "unavailable" | "blocked" | "retired";
+
+interface Props {
+  status: Status;
+  title: string;
+  message: string;
+}
+
+const { status, title, message } = Astro.props;
+const labels: Record<Status, string> = {
+  unavailable: "Unavailable",
+  blocked: "Temporarily unavailable",
+  retired: "Retired",
+};
+---
+
+<section class="status-page" data-status={status} aria-labelledby="status-title">
+  <p class="fixture-label">{labels[status]}</p>
+  <h1 id="status-title">{title}</h1>
+  <p>{message}</p>
+  <nav class="status-page__recovery" aria-label="Recovery">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#scenarios">Browse scenarios</a></li>
+      <li><a href="/methodology">Methodology</a></li>
+    </ul>
+  </nav>
+</section>
