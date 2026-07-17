@@ -11,6 +11,10 @@
     "check": "astro check && tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
     "test": "vitest run",
     "test:schema": "vitest run tests/content-schema.test.ts",
+    "test:browser": "playwright test",
+    "test:browser:core": "playwright test --project=chromium --project=webkit",
+    "test:browser:firefox": "playwright test tests/browser/home-to-decision.test.ts --project=firefox-smoke",
+    "test:browser:smoke": "playwright test tests/browser/home-to-decision.test.ts --project=chromium",
     "build": "astro build",
     "preview": "astro preview"
   },
@@ -22,6 +26,8 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.9",
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.61.1",
     "@types/node": "24.13.3",
     "typescript": "5.9.3",
     "vitest": "4.1.10"

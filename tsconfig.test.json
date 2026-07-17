@@ -4,5 +4,5 @@
     "noEmit": true,
     "types": ["vitest/globals", "node"]
   },
-  "include": ["tests"]
+  "include": ["tests", "playwright.config.ts"]
 }
