@@ -2,6 +2,7 @@
 import type { DecisionEvaluation } from "../../domain/decision";
 import type { DomainCandidate, DomainScenario } from "../../domain/model";
 import EvidenceBadge from "./EvidenceBadge.astro";
+import ShortlistToggle from "./ShortlistToggle.astro";
 import { conditionReasonText, exclusionReasons, relevantCheckDate } from "./presentation";
 
 interface Props {
@@ -46,7 +47,10 @@ const orderedCandidateIds = [...evaluation.matches, ...evaluation.exclusions].ma
                 </p>
                 <h3>{candidate.tool.name}</h3>
               </div>
-              <a href={`/tool/${candidate.tool.slug}`}>View Tool details</a>
+              <div class="candidate-card__actions">
+                <a href={`/tool/${candidate.tool.slug}`}>View Tool details</a>
+                <ShortlistToggle candidate={candidate} />
+              </div>
             </div>
             <ul class="excluded-candidate__reasons" data-exclusion-reasons>
               {reasons.map((reason) => {

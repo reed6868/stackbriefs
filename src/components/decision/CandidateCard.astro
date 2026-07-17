@@ -3,6 +3,7 @@ import type { CandidateEvaluation } from "../../domain/decision";
 import type { DomainCandidate, DomainScenario } from "../../domain/model";
 import EvidenceBadge from "./EvidenceBadge.astro";
 import EvidenceSummary from "./EvidenceSummary.astro";
+import ShortlistToggle from "./ShortlistToggle.astro";
 import { conditionExplanationText } from "./presentation";
 
 interface Props {
@@ -27,7 +28,10 @@ const hasConditions = evaluation.required.length + evaluation.optional.length > 
       </p>
       <h3>{candidate.tool.name}</h3>
     </div>
-    <a href={`/tool/${candidate.tool.slug}`}>View Tool details</a>
+    <div class="candidate-card__actions">
+      <a href={`/tool/${candidate.tool.slug}`}>View Tool details</a>
+      <ShortlistToggle candidate={candidate} />
+    </div>
   </div>
   <p class="candidate-card__summary">{candidate.tool.summary}</p>
   <section
