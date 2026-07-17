@@ -3,7 +3,6 @@ import type { BreadcrumbItem } from "../components/Breadcrumbs.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
-import { publicationOptionsFromEnvironment } from "../content/build-context";
 import {
   buildStructuredData,
   canonicalUrl,
@@ -19,7 +18,7 @@ interface Props {
   breadcrumbs?: BreadcrumbItem[];
   seoBreadcrumbs?: BreadcrumbItem[];
   noindex?: boolean;
-  indexable?: boolean;
+  indexable: boolean;
   canonicalPath?: string;
   structuredData?: SeoContent | undefined;
 }
@@ -31,7 +30,7 @@ const {
   breadcrumbs,
   seoBreadcrumbs = breadcrumbs,
   noindex = false,
-  indexable = publicationOptionsFromEnvironment().target === "production",
+  indexable,
   canonicalPath = Astro.url.pathname,
   structuredData,
 } = Astro.props;

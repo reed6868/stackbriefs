@@ -13,6 +13,7 @@ const { route } = Astro.props;
 <BaseLayout
   title={route.documentTitle}
   description={route.description}
+  indexable={false}
   noindex={route.noindex}
   breadcrumbs={[{ label: "Home", href: "/" }, { label: route.breadcrumbLabel }]}
 >

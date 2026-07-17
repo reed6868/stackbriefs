@@ -38,7 +38,7 @@ export function renderCloudflareRedirects(
   return `${lines.join("\n")}\n`;
 }
 
-export function lifecycleRedirects(): AstroIntegration {
+export function lifecycleRedirects(configPublication?: PublicationAssembly): AstroIntegration {
   let redirects: readonly LifecycleRedirect[] = [];
 
   return {
@@ -46,7 +46,7 @@ export function lifecycleRedirects(): AstroIntegration {
     hooks: {
       "astro:config:setup": async ({ addWatchFile, updateConfig }) => {
         publicationContentFiles.forEach((file) => addWatchFile(file));
-        const publication = await assembleFilePublication({
+        const publication = configPublication ?? await assembleFilePublication({
           target: resolveBuildTarget(process.env.STACKBRIEFS_BUILD_TARGET),
           asOf: process.env.STACKBRIEFS_BUILD_DATE ?? new Date().toISOString().slice(0, 10),
         });

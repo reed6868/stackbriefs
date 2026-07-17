@@ -1,16 +1,19 @@
 ---
 import { getEntry, render } from "astro:content";
 
+import { seoIndexableFromEnvironment } from "../content/seo-context";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
 const page = await getEntry("pages", "affiliate-disclosure");
 if (!page) throw new Error("Affiliate disclosure page content is required");
 const { Content } = await render(page);
+const indexable = seoIndexableFromEnvironment();
 ---
 
 <BaseLayout
   title={`${page.data.title} | StackBriefs`}
   description={page.data.description}
+  indexable={indexable}
   canonicalPath="/affiliate-disclosure"
   reading
   breadcrumbs={[{ label: "Home", href: "/" }, { label: "Affiliate disclosure" }]}
