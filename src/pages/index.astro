@@ -1,17 +1,56 @@
 ---
+import ScenarioRow from "../components/ScenarioRow.astro";
+import { homeScenarios, sortHomeScenarios } from "../fixtures/home-scenarios";
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const scenarios = sortHomeScenarios(homeScenarios);
 ---
 
 <BaseLayout
-  title="StackBriefs"
-  description="Scenario-first AI tool decision support."
+  title="StackBriefs — scenario-first AI tool decisions"
+  description="Start with a use case, narrow the options, and verify AI-tool trade-offs."
 >
-  <section id="scenarios" aria-labelledby="home-title" data-fixture="true">
+  <header class="home-hero" aria-labelledby="home-title" data-fixture="true">
     <p class="fixture-label">Fixture preview</p>
     <h1 id="home-title">Start with a use case. Narrow the options. Choose with confidence.</h1>
     <p>
-      The P0 route skeleton is available with non-production fixture content. Scenario discovery and decision logic arrive through later reviewed tasks.
+      Compare AI tools inside a concrete decision context, with explicit boundaries, current evidence, and no universal winner.
     </p>
-    <p class="route-actions"><a href="/decision/fixture-scenario">Open the fixture Scenario</a></p>
+    <a class="home-hero__action" href="#scenarios">Browse fixture scenarios</a>
+  </header>
+
+  <section id="scenarios" class="home-section" aria-labelledby="scenarios-title" data-fixture="true">
+    <div class="home-section__heading">
+      <p class="fixture-label">Scenario discovery</p>
+      <h2 id="scenarios-title">Choose the decision you are making</h2>
+      <p>Each fixture demonstrates a different goal, boundary, and set of decision dimensions.</p>
+    </div>
+    <div class="scenario-list">
+      {scenarios.map((scenario) => <ScenarioRow scenario={scenario} />)}
+    </div>
+  </section>
+
+  <section id="how-it-works" class="home-section" aria-labelledby="process-title">
+    <div class="home-section__heading">
+      <p class="fixture-label">How it works</p>
+      <h2 id="process-title">Narrow, compare, verify</h2>
+    </div>
+    <ol class="process-list">
+      <li><strong>Narrow</strong><span>Set the required conditions for this Scenario.</span></li>
+      <li><strong>Compare</strong><span>Inspect equal, Scenario-scoped trade-offs without a winner column.</span></li>
+      <li><strong>Verify</strong><span>Check evidence state, scope, limitations, and review date before leaving.</span></li>
+    </ol>
+  </section>
+
+  <section id="trust" class="home-section trust-strip" aria-labelledby="trust-title">
+    <div>
+      <p class="fixture-label">Trust</p>
+      <h2 id="trust-title">Understand the method and commercial boundary</h2>
+      <p>Matching and evidence rules remain separate from Affiliate relationships.</p>
+    </div>
+    <nav aria-label="Trust">
+      <a href="/methodology">Read the Methodology</a>
+      <a href="/affiliate-disclosure">Read the Affiliate disclosure</a>
+    </nav>
   </section>
 </BaseLayout>
