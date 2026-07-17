@@ -7,6 +7,7 @@ import {
   expectNoPageOverflow,
   watchPageErrors,
 } from "./helpers";
+import { matchingProhibitedMethodologyClaims } from "../methodology-policy";
 
 const methodologyPath = "/methodology";
 
@@ -27,13 +28,14 @@ test("Methodology renders accurate, navigable trust content", async ({ page }, t
   await expect(stateReference.getByRole("table")).toBeVisible();
   await expect(stateReference.getByRole("columnheader")).toHaveCount(2);
   await expect(stateReference.getByRole("row")).toHaveCount(7);
-  await expect(page.getByRole("link", { name: "writing assistants Decision" }))
-    .toHaveAttribute("href", "/decision/writing-assistants");
+  await expect(page.getByRole("link", { name: "Decision scenarios" }))
+    .toHaveAttribute("href", "/#scenarios");
   await expect(page.getByRole("link", { name: "Affiliate disclosure" }).last())
     .toHaveAttribute("href", "/affiliate-disclosure");
-  await expect(page.getByText(/winner|best tool|top-ranked|ranking score/i)).toHaveCount(0);
+  const methodologyText = await page.locator("article.trusted-content").innerText();
+  expect(matchingProhibitedMethodologyClaims(methodologyText)).toEqual([]);
 
-  for (const path of ["/decision/writing-assistants", "/affiliate-disclosure"]) {
+  for (const path of ["/", "/affiliate-disclosure"]) {
     expect((await page.request.get(path)).status()).toBe(200);
   }
   await expectNoPageOverflow(page);
@@ -58,7 +60,7 @@ test("Methodology remains useful without JavaScript", async ({ browser }, testIn
   await expect(page.getByRole("heading", { name: "Required conditions" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Commercial neutrality" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Evidence state reference" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "writing assistants Decision" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Decision scenarios" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Affiliate disclosure" }).last()).toBeVisible();
   await expectNoPageOverflow(page);
   await context.close();

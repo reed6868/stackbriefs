@@ -18,7 +18,10 @@ const routePaths = [
   "../src/pages/404.astro",
 ] as const;
 
-const fixtureRoutePaths = routePaths.slice(0, -1);
+const fixturePlaceholderRoutePaths = [
+  "../src/pages/index.astro",
+  "../src/pages/affiliate-disclosure.astro",
+] as const;
 const execFileAsync = promisify(execFile);
 
 describe("P0 route skeleton", () => {
@@ -50,10 +53,7 @@ describe("P0 route skeleton", () => {
 
   it("marks remaining non-production route placeholders as fixtures", async () => {
     const routes = await Promise.all(
-      fixtureRoutePaths
-        .filter((path) => !path.includes("decision/") && !path.includes("tool/"))
-        .filter((path) => !path.endsWith("methodology.astro"))
-        .map((path) => readFile(new URL(path, import.meta.url), "utf8")),
+      fixturePlaceholderRoutePaths.map((path) => readFile(new URL(path, import.meta.url), "utf8")),
     );
 
     for (const source of routes) {

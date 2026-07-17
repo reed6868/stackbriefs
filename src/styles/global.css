@@ -334,7 +334,7 @@ button {
   color: var(--color-muted);
 }
 
-.on-this-page {
+.trusted-content .on-this-page {
   margin-top: var(--space-8);
   padding: var(--space-6);
   border: var(--border-width) solid var(--color-border);
@@ -342,16 +342,16 @@ button {
   background: var(--color-surface);
 }
 
-.on-this-page h2 {
+.trusted-content .on-this-page h2 {
   margin: 0;
   font-size: var(--text-heading-sm);
 }
 
-.on-this-page ul {
+.trusted-content .on-this-page ul {
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
 }
 
-.table-scroll {
+.trusted-content .table-scroll {
   max-width: 100%;
   margin-top: var(--space-6);
   overflow-x: auto;
@@ -360,7 +360,7 @@ button {
   background: var(--color-surface);
 }
 
-.table-scroll:focus-visible {
+.trusted-content .table-scroll:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }

@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { matchingProhibitedMethodologyClaims } from "./methodology-policy";
+
 describe("Methodology page", () => {
   let source: string;
   let pageSource: string;
@@ -55,20 +57,18 @@ describe("Methodology page", () => {
     expect(source).toContain("unavailable");
   });
 
-  it("provides accessible navigation, reference structure, and related paths", () => {
-    expect(source).toContain('<nav aria-label="On this page"');
-    expect(source).toMatch(/href="#how-matching-works"/);
-    expect(source).toContain("## How matching works");
-    expect(source).toContain('role="region"');
-    expect(source).toContain('aria-label="Evidence state reference"');
-    expect(source).toMatch(/<th[^>]+scope="col"/);
-    expect(source).toContain("](/decision/writing-assistants)");
-    expect(source).toContain("](/affiliate-disclosure)");
-  });
-
   it("avoids unsupported ranking and evidence-strength claims", () => {
-    expect(source).not.toMatch(/\bwinner\b|\bbest tool\b|\btop-ranked\b|ranking score/i);
-    expect(source).not.toMatch(/confidence (score|percentage|rating)/i);
-    expect(source).not.toMatch(/majority (vote|wins|decides)/i);
+    expect(matchingProhibitedMethodologyClaims(source)).toEqual([]);
+
+    for (const claim of [
+      "Top tools for writers",
+      "The best choice for small teams",
+      "Score: 92",
+      "95% confidence",
+      "The source majority determines the result",
+      "The source count decides the result",
+    ]) {
+      expect(matchingProhibitedMethodologyClaims(claim), claim).not.toEqual([]);
+    }
   });
 });
