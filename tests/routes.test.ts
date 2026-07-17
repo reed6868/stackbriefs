@@ -40,6 +40,8 @@ describe("P0 route skeleton", () => {
         expect(source).toContain("<StatusPage");
       } else if (path.includes("decision/")) {
         expect(source).toContain("<DecisionWorkspace");
+      } else if (path.includes("tool/")) {
+        expect(source).toContain("<ToolDetail");
       } else {
         expect(source.match(/<h1(?:\s|>)/g), `${path} has one H1`).toHaveLength(1);
       }
@@ -49,7 +51,7 @@ describe("P0 route skeleton", () => {
   it("marks remaining non-production route placeholders as fixtures", async () => {
     const routes = await Promise.all(
       fixtureRoutePaths
-        .filter((path) => !path.includes("decision/"))
+        .filter((path) => !path.includes("decision/") && !path.includes("tool/"))
         .map((path) => readFile(new URL(path, import.meta.url), "utf8")),
     );
 
@@ -108,8 +110,10 @@ describe("P0 route skeleton", () => {
       expect(decision).toContain("Not suitable for");
       expect(decision).not.toContain("Route skeleton");
     }
-    expect(tool).not.toContain('href="/decision/');
-    expect(tool).toContain('href="/#scenarios"');
+    expect(tool).toContain("Where this Tool is evaluated");
+    expect(tool).toContain('href="/decision/writing-assistants"');
+    expect(tool).toContain("Official Link");
+    expect(tool).not.toContain("Route skeleton");
   }, 20_000);
 
   it("renders noindex metadata for status layouts", async () => {

@@ -29,7 +29,10 @@ const hasConditions = evaluation.required.length + evaluation.optional.length > 
       <h3>{candidate.tool.name}</h3>
     </div>
     <div class="candidate-card__actions">
-      <a href={`/tool/${candidate.tool.slug}`}>View Tool details</a>
+      <a
+        href={`/tool/${candidate.tool.slug}?scenario=${scenario.slug}`}
+        data-tool-detail-link
+      >View Tool details</a>
       <ShortlistToggle candidate={candidate} />
     </div>
   </div>

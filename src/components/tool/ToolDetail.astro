@@ -1,0 +1,111 @@
+---
+import type { ToolDetailProjection } from "../../domain/tool-detail";
+
+interface Props {
+  detail: ToolDetailProjection;
+}
+
+const { detail } = Astro.props;
+const initials = detail.tool.name
+  .split(/\s+/)
+  .slice(0, 2)
+  .map((part) => part[0]?.toUpperCase())
+  .join("");
+const serializedContexts = encodeURIComponent(JSON.stringify(detail.contexts.map((context) => ({
+  scenarioSlug: context.scenarioSlug,
+  scenarioTitle: context.scenarioTitle,
+  urlStateScenario: context.urlStateScenario,
+}))));
+const handsOnLabels = {
+  tested: "Tested",
+  partially_tested: "Partially tested",
+  not_tested: "Not tested",
+  unavailable: "Hands-on testing unavailable",
+} as const;
+---
+
+<article
+  class="tool-detail"
+  data-fixture={detail.tool.fixture ? "true" : undefined}
+  data-tool-detail-controller
+  data-tool-contexts={serializedContexts}
+>
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li data-tool-scenario-breadcrumb hidden><a href="/">Scenario</a></li>
+      <li><span aria-current="page">{detail.tool.name}</span></li>
+    </ol>
+  </nav>
+
+  <a class="tool-detail__return" href="/" data-tool-return hidden>Return to Scenario</a>
+
+  <header class="tool-identity">
+    <div class="tool-logo" aria-hidden={!detail.tool.logo?.alt}>
+      {detail.tool.logo && (
+        <img
+          src={detail.tool.logo.src}
+          alt={detail.tool.logo.alt}
+          width="72"
+          height="72"
+          data-tool-logo-image
+        />
+      )}
+      <span data-tool-logo-fallback hidden={Boolean(detail.tool.logo)}>{initials}</span>
+    </div>
+    <div>
+      <p class="fixture-label">{detail.tool.fixture ? "Fixture preview" : "Tool profile"}</p>
+      <h1>{detail.tool.name}</h1>
+      <p class="tool-identity__summary">{detail.tool.summary}</p>
+      <a
+        class="primary-button tool-identity__official"
+        href={detail.tool.officialUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >Official Link</a>
+    </div>
+  </header>
+
+  <section class="tool-contexts" aria-labelledby="tool-contexts-title">
+    <div class="tool-contexts__heading">
+      <p class="fixture-label">Published Scenario contexts</p>
+      <h2 id="tool-contexts-title">Where this Tool is evaluated</h2>
+      <p>Each context keeps its own limitation, hands-on status, and verification steps.</p>
+    </div>
+
+    {detail.contexts.map((context) => (
+      <section
+        class="tool-context"
+        aria-labelledby={`tool-context-${context.scenarioSlug}`}
+        data-tool-context={context.scenarioSlug}
+      >
+        <header class="tool-context__header">
+          <div>
+            <h3 id={`tool-context-${context.scenarioSlug}`}>
+              <a href={`/decision/${context.scenarioSlug}`}>{context.scenarioTitle}</a>
+            </h3>
+            <p>{context.scenarioGoal}</p>
+          </div>
+          <span class="state-label" data-hands-on-state={context.handsOnState}>
+            {handsOnLabels[context.handsOnState]}
+          </span>
+        </header>
+
+        <p class="tool-context__limitation"><strong>Limitation:</strong> {context.limitation}</p>
+
+        <section class="tool-checklist" aria-labelledby={`tool-checklist-${context.scenarioSlug}`}>
+          <h4 id={`tool-checklist-${context.scenarioSlug}`}>Verify before using</h4>
+          <ul>
+            {context.verificationChecklist.map((item) => <li>{item}</li>)}
+          </ul>
+        </section>
+      </section>
+    ))}
+  </section>
+</article>
+
+<script>
+  import { mountToolDetailControllers } from "../../browser/tool-detail-controller";
+
+  mountToolDetailControllers();
+</script>

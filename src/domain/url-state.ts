@@ -4,8 +4,13 @@ import {
   type DecisionCondition,
   type DecisionConditionValue,
 } from "./decision";
-import type { DomainScenario } from "./model";
 import { SHORTLIST_LIMIT } from "./shortlist";
+
+export interface UrlStateScenario {
+  slug: string;
+  dimensions: readonly DimensionContent[];
+  candidates: ReadonlyArray<{ tool: { slug: string } }>;
+}
 
 export interface UrlState {
   conditions: readonly DecisionCondition[];
@@ -40,7 +45,7 @@ export function parseDecisionConditionValue(
   return isValidDecisionConditionValue(dimension, value) ? value : undefined;
 }
 
-function normalizeConditions(scenario: DomainScenario, conditions: readonly DecisionCondition[]) {
+function normalizeConditions(scenario: UrlStateScenario, conditions: readonly DecisionCondition[]) {
   const dimensions = new Map(scenario.dimensions.map((dimension) => [dimension.id, dimension]));
   const seen = new Set<string>();
   const normalized = conditions.flatMap((condition): DecisionCondition[] => {
@@ -56,7 +61,7 @@ function normalizeConditions(scenario: DomainScenario, conditions: readonly Deci
     dimensions.get(left.dimensionId)!.order - dimensions.get(right.dimensionId)!.order);
 }
 
-function normalizeShortlist(scenario: DomainScenario, shortlist: readonly string[]) {
+function normalizeShortlist(scenario: UrlStateScenario, shortlist: readonly string[]) {
   const validSlugs = new Set(scenario.candidates.map((candidate) => candidate.tool.slug));
   const seen = new Set<string>();
   const normalized: string[] = [];
@@ -69,7 +74,7 @@ function normalizeShortlist(scenario: DomainScenario, shortlist: readonly string
   return normalized;
 }
 
-export function normalizeUrlState(scenario: DomainScenario, input: UrlStateInput): UrlState {
+export function normalizeUrlState(scenario: UrlStateScenario, input: UrlStateInput): UrlState {
   const conditions = normalizeConditions(scenario, input.conditions);
   const shortlist = normalizeShortlist(scenario, input.shortlist);
   return {
@@ -79,7 +84,7 @@ export function normalizeUrlState(scenario: DomainScenario, input: UrlStateInput
   };
 }
 
-export function parseUrlState(scenario: DomainScenario, location: UrlLocationInput): UrlState {
+export function parseUrlState(scenario: UrlStateScenario, location: UrlLocationInput): UrlState {
   const dimensions = new Map(scenario.dimensions.map((dimension) => [dimension.id, dimension]));
   const conditions: DecisionCondition[] = [];
   const shortlist: string[] = [];
@@ -112,7 +117,7 @@ function serializeValue(value: DecisionConditionValue) {
   return typeof value === "boolean" ? String(value) : encodeURIComponent(String(value));
 }
 
-export function serializeUrlState(scenario: DomainScenario, input: UrlStateInput): SerializedUrlState {
+export function serializeUrlState(scenario: UrlStateScenario, input: UrlStateInput): SerializedUrlState {
   const normalized = normalizeUrlState(scenario, input);
   const required = normalized.conditions.filter((condition) => condition.mode === "required");
   const optional = normalized.conditions.filter((condition) => condition.mode === "optional");
@@ -129,6 +134,6 @@ export function serializeUrlState(scenario: DomainScenario, input: UrlStateInput
   };
 }
 
-export function decisionCanonicalPath(scenario: DomainScenario) {
+export function decisionCanonicalPath(scenario: UrlStateScenario) {
   return `/decision/${scenario.slug}`;
 }

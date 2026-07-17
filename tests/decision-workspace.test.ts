@@ -189,8 +189,8 @@ describe("static Decision workspace", () => {
     expect(html).toContain("Fixture observations cover only the documented individual plan.");
     expect(html).toContain("Export formats does not match the selected value");
     expect(html.match(/Checked <time datetime="2026-07-16"/g)).toHaveLength(4);
-    expect(html).toContain('href="/tool/alpha-writer"');
-    expect(html).toContain('href="/tool/bravo-draft"');
+    expect(html).toContain('href="/tool/alpha-writer?scenario=writing-assistants"');
+    expect(html).toContain('href="/tool/bravo-draft?scenario=writing-assistants"');
   });
 
   it("shows check dates only from sources selected by evidence resolution", async () => {

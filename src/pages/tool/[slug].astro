@@ -1,38 +1,25 @@
 ---
 import { assembleContentCollections } from "../../content/assemble";
 import { publicationOptionsFromEnvironment } from "../../content/build-context";
-import type { ToolContent } from "../../content/schema";
+import ToolDetail from "../../components/tool/ToolDetail.astro";
+import { projectToolDetailPaths, type ToolDetailProjection } from "../../domain/tool-detail";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 interface Props {
-  tool: ToolContent;
+  detail: ToolDetailProjection;
 }
 
 export async function getStaticPaths() {
   const publication = await assembleContentCollections(publicationOptionsFromEnvironment());
-  return publication.toolOutcomes.flatMap((outcome) =>
-    outcome.kind === "exposed-tool"
-      ? [{ params: { slug: outcome.slug }, props: { tool: outcome.tool } }]
-      : [],
-  );
+  return projectToolDetailPaths(publication);
 }
 
-const { tool } = Astro.props;
+const { detail } = Astro.props;
 ---
 
 <BaseLayout
-  title={`${tool.name} | StackBriefs`}
-  description="Non-production fixture for the StackBriefs Tool route."
-  breadcrumbs={[{ label: "Home", href: "/" }, { label: tool.name }]}
+  title={`${detail.tool.name} | StackBriefs`}
+  description={`${detail.tool.summary} Review published Scenario contexts, limitations, hands-on status, and verification steps.`}
 >
-  <article data-fixture={tool.fixture ? "true" : undefined}>
-    <p class="fixture-label">{tool.fixture ? "Fixture preview" : "Published Tool"}</p>
-    <h1>{tool.name}</h1>
-    <p>{tool.summary}</p>
-    <h2>Route skeleton</h2>
-    <p>
-      Evidence, limitations, hands-on status, and outbound-link separation are intentionally deferred. This page does not make a fit claim or name a winner.
-    </p>
-    <p class="route-actions"><a href="/#scenarios">Browse fixture Scenarios</a></p>
-  </article>
+  <ToolDetail detail={detail} />
 </BaseLayout>
