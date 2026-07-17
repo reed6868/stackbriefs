@@ -7,6 +7,6 @@ export default getViteConfig({
     environment: "node",
     fileParallelism: false,
     include: ["tests/**/*.test.ts"],
-    exclude: [".worktrees/**", "node_modules/**", "dist/**"],
+    exclude: [".worktrees/**", "tests/browser/**", "node_modules/**", "dist/**"],
   },
 });
