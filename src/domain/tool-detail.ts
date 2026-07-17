@@ -1,6 +1,14 @@
 import type { ToolContent } from "../content/schema";
 import type { PublicationAssembly } from "./model";
 import {
+  downgradeToolClaimForBrowser,
+  downgradeToolOfferForBrowser,
+  projectToolClaims,
+  projectToolOffer,
+  type ToolClaimProjection,
+  type ToolOfferProjection,
+} from "./tool-evidence";
+import {
   decisionCanonicalPath,
   parseUrlState,
   serializeUrlState,
@@ -18,12 +26,14 @@ export interface ToolScenarioContext extends ToolContextReference {
   scenarioGoal: string;
   limitation: string;
   handsOnState: "tested" | "partially_tested" | "not_tested" | "unavailable";
+  claims: readonly ToolClaimProjection[];
   verificationChecklist: readonly string[];
 }
 
 export interface ToolDetailProjection {
   tool: ToolContent;
   contexts: readonly ToolScenarioContext[];
+  offer?: ToolOfferProjection | undefined;
 }
 
 export function projectToolDetail(
@@ -51,6 +61,7 @@ export function projectToolDetail(
       scenarioGoal: outcome.scenario.goal,
       limitation: candidate.limitation,
       handsOnState: candidate.handsOnState,
+      claims: projectToolClaims(candidate),
       verificationChecklist: [...outcome.scenario.verificationChecklist],
     }];
   }).sort((left, right) => {
@@ -58,7 +69,25 @@ export function projectToolDetail(
     return byTitle !== 0 ? byTitle : left.scenarioSlug.localeCompare(right.scenarioSlug, "en");
   });
 
-  return { tool: toolOutcome.tool, contexts };
+  return {
+    tool: toolOutcome.tool,
+    contexts,
+    offer: projectToolOffer(assembly.offers, toolOutcome.id, assembly.asOf),
+  };
+}
+
+export function downgradeToolDetailForBrowser(
+  detail: ToolDetailProjection,
+  browserAsOf: string,
+): ToolDetailProjection {
+  return {
+    ...detail,
+    contexts: detail.contexts.map((context) => ({
+      ...context,
+      claims: context.claims.map((claim) => downgradeToolClaimForBrowser(claim, browserAsOf)),
+    })),
+    offer: downgradeToolOfferForBrowser(detail.offer, browserAsOf),
+  };
 }
 
 export function projectToolDetailPaths(assembly: PublicationAssembly) {
