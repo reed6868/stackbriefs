@@ -1,0 +1,13 @@
+[
+  {
+    "fixture": true,
+    "id": "offer-alpha-research",
+    "toolId": "tool-alpha",
+    "affiliateUrl": "https://offers.example/alpha",
+    "status": "research_only",
+    "lastCheckedAt": "2026-07-16",
+    "evidenceIds": [],
+    "terms": "Non-production fixture used only to validate structural separation.",
+    "region": "global"
+  }
+]

@@ -34,6 +34,9 @@ jobs:
       - name: Check types and Astro files
         run: npm run check
 
+      - name: Validate content schema
+        run: npm run test:schema
+
       - name: Run unit tests
         run: npm test
 

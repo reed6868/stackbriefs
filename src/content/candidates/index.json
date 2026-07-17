@@ -1,0 +1,56 @@
+[
+  {
+    "fixture": true,
+    "id": "candidate-writing-alpha",
+    "scenarioId": "scenario-writing-assistants",
+    "toolId": "tool-alpha",
+    "limitation": "Fixture observations cover only the documented team plan.",
+    "claimBindings": {
+      "commercial-use": { "subjectType": "candidate", "claimKey": "commercial-use" },
+      "export-formats": { "subjectType": "candidate", "claimKey": "export-formats" },
+      "collaboration-mode": { "subjectType": "candidate", "claimKey": "collaboration-mode" }
+    },
+    "handsOnState": "partially_tested"
+  },
+  {
+    "fixture": true,
+    "id": "candidate-writing-bravo",
+    "scenarioId": "scenario-writing-assistants",
+    "toolId": "tool-bravo",
+    "limitation": "Fixture observations cover only the documented individual plan.",
+    "claimBindings": {
+      "commercial-use": { "subjectType": "candidate", "claimKey": "commercial-use" },
+      "export-formats": { "subjectType": "candidate", "claimKey": "export-formats" },
+      "collaboration-mode": { "subjectType": "candidate", "claimKey": "collaboration-mode" }
+    },
+    "handsOnState": "not_tested"
+  },
+  {
+    "fixture": true,
+    "id": "candidate-meetings-charlie",
+    "scenarioId": "scenario-meeting-assistants",
+    "toolId": "tool-charlie",
+    "limitation": "Fixture observations cover business-plan settings in the EU region.",
+    "claimBindings": {
+      "retention-days": { "subjectType": "candidate", "claimKey": "retention-days" },
+      "consent-reminder": { "subjectType": "candidate", "claimKey": "consent-reminder" },
+      "hosting-region": { "subjectType": "candidate", "claimKey": "hosting-region" },
+      "calendar-integrations": { "subjectType": "candidate", "claimKey": "calendar-integrations" }
+    },
+    "handsOnState": "tested"
+  },
+  {
+    "fixture": true,
+    "id": "candidate-meetings-delta",
+    "scenarioId": "scenario-meeting-assistants",
+    "toolId": "tool-delta",
+    "limitation": "Fixture observations cover the web application and US hosting only.",
+    "claimBindings": {
+      "retention-days": { "subjectType": "candidate", "claimKey": "retention-days" },
+      "consent-reminder": { "subjectType": "candidate", "claimKey": "consent-reminder" },
+      "hosting-region": { "subjectType": "candidate", "claimKey": "hosting-region" },
+      "calendar-integrations": { "subjectType": "candidate", "claimKey": "calendar-integrations" }
+    },
+    "handsOnState": "unavailable"
+  }
+]
