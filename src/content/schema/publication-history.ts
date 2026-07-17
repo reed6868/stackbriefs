@@ -73,11 +73,21 @@ export function validatePublicationHistory(graph: ContentGraph, history: Publica
     tool: new Map(graph.tools.map((record) => [record.id, record])),
   };
   const historyByIdentity = new Map(history.map((entry) => [`${entry.recordType}:${entry.id}`, entry]));
+  const historyBySlug = new Map(history.map((entry) => [`${entry.recordType}:${entry.slug}`, entry]));
 
   for (const [recordType, currentRecords] of Object.entries(records) as Array<
     [keyof typeof records, typeof records.scenario | typeof records.tool]
   >) {
     for (const record of currentRecords.values()) {
+      const slugEntry = historyBySlug.get(`${recordType}:${record.slug}`);
+      if (slugEntry && slugEntry.id !== record.id) {
+        const collection = recordType === "scenario" ? "scenarios" : "tools";
+        const index = graph[collection].findIndex((candidate) => candidate.id === record.id);
+        issues.push({
+          path: [collection, index, "slug"],
+          message: `published slug "${record.slug}" remains reserved for ${recordType} "${slugEntry.id}"`,
+        });
+      }
       if (record.fixture || !record.firstPublishedAt) continue;
       const entry = historyByIdentity.get(`${recordType}:${record.id}`);
       const collection = recordType === "scenario" ? "scenarios" : "tools";

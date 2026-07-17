@@ -367,6 +367,7 @@ describe("authoritative content schema", () => {
     changedId.candidates[0]!.toolId = "tool-alpha-renamed";
     changedId.offers[0]!.toolId = "tool-alpha-renamed";
     expect(() => parseContentGraph(changedId, { publicationHistory })).toThrow(/published tool "tool-alpha" must remain present/);
+    expect(() => parseContentGraph(changedId, { publicationHistory })).toThrow(/published slug "alpha" remains reserved/);
   });
 
   it("keeps the checked-in publication ledger append-only relative to main", async () => {

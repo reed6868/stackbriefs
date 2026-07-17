@@ -25,3 +25,5 @@ export {
   validatePublicationHistoryEvolution,
 } from "./schema/publication-history";
 export type { PublicationHistory, PublicationHistoryInput } from "./schema/publication-history";
+export { validateReferences } from "./schema/validate-references";
+export type { GraphIssue } from "./schema/graph-types";

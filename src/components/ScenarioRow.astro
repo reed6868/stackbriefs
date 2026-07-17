@@ -1,5 +1,5 @@
 ---
-import type { HomeScenario } from "../fixtures/home-scenarios";
+import type { HomeScenario } from "../domain/home-discovery";
 
 interface Props {
   scenario: HomeScenario;
@@ -8,10 +8,10 @@ interface Props {
 const { scenario } = Astro.props;
 ---
 
-<article class="scenario-row" data-fixture="true">
+<article class="scenario-row" data-fixture={scenario.fixture ? "true" : undefined}>
   <div class="scenario-row__heading">
     <div>
-      <p class="fixture-label">Fixture scenario</p>
+      <p class="fixture-label">{scenario.fixture ? "Fixture scenario" : "Published scenario"}</p>
       <h3><a href={`/decision/${scenario.slug}`}>{scenario.title}</a></h3>
     </div>
     <span aria-label={`${scenario.candidateCount} candidates and ${scenario.dimensionCount} dimensions`}>

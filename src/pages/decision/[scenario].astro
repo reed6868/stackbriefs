@@ -1,17 +1,20 @@
 ---
-import type { HomeScenario } from "../../fixtures/home-scenarios";
-import { homeScenarios } from "../../fixtures/home-scenarios";
+import { assembleContentCollections } from "../../content/assemble";
+import { publicationOptionsFromEnvironment } from "../../content/build-context";
+import type { DomainScenario } from "../../domain/model";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 interface Props {
-  scenario: HomeScenario;
+  scenario: DomainScenario;
 }
 
-export function getStaticPaths() {
-  return homeScenarios.map((scenario) => ({
-    params: { scenario: scenario.slug },
-    props: { scenario },
-  }));
+export async function getStaticPaths() {
+  const publication = await assembleContentCollections(publicationOptionsFromEnvironment());
+  return publication.scenarioOutcomes.flatMap((outcome) =>
+    outcome.kind === "published"
+      ? [{ params: { scenario: outcome.slug }, props: { scenario: outcome.scenario } }]
+      : [],
+  );
 }
 
 const { scenario } = Astro.props;
@@ -22,8 +25,8 @@ const { scenario } = Astro.props;
   description="Non-production fixture for the StackBriefs Decision route."
   breadcrumbs={[{ label: "Home", href: "/" }, { label: scenario.title }]}
 >
-  <article data-fixture="true">
-    <p class="fixture-label">Fixture preview</p>
+  <article data-fixture={scenario.fixture ? "true" : undefined}>
+    <p class="fixture-label">{scenario.fixture ? "Fixture preview" : "Published Scenario"}</p>
     <h1>{scenario.title}</h1>
     <p>{scenario.goal}</p>
     <h2>Route skeleton</h2>

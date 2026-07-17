@@ -1,10 +1,25 @@
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { homeScenarios, sortHomeScenarios } from "../src/fixtures/home-scenarios";
+import { sortHomeScenarios } from "../src/domain/home-discovery";
 import HomePage from "../src/pages/index.astro";
 
 const expectedOrder = ["meeting-assistants", "writing-assistants"];
+const orderFixtures = [
+  { slug: "writing-assistants", title: "Writing assistants for small teams" },
+  { slug: "meeting-assistants", title: "AI meeting assistants for client calls" },
+] as const;
+const renderScenarios = orderFixtures.map((scenario, index) => ({
+  ...scenario,
+  goal: index === 0 ? "Choose a writing assistant." : "Choose a meeting assistant.",
+  prerequisite: "Human review is available.",
+  suitableFor: "Small teams.",
+  notSuitableFor: "Autonomous high-risk use.",
+  candidateCount: 2,
+  dimensionCount: index === 0 ? 3 : 4,
+  lastReviewedAt: "2026-07-16",
+  fixture: true,
+}));
 
 describe("Home discovery", () => {
   let container: Awaited<ReturnType<typeof AstroContainer.create>>;
@@ -14,7 +29,7 @@ describe("Home discovery", () => {
   });
 
   it("sorts Scenario fixtures by normalized title and then slug without mutating input", () => {
-    const input = [...homeScenarios].reverse();
+    const input = [...orderFixtures].reverse();
     const before = input.map((scenario) => scenario.slug);
 
     expect(sortHomeScenarios(input).map((scenario) => scenario.slug)).toEqual(expectedOrder);
@@ -22,7 +37,7 @@ describe("Home discovery", () => {
   });
 
   it("ignores commercial and popularity-only mutations", () => {
-    const mutated = homeScenarios.map((scenario, index) => ({
+    const mutated = orderFixtures.map((scenario, index) => ({
       ...scenario,
       affiliateValue: index === 0 ? 10_000 : 0,
       deal: index === 0 ? "Featured deal" : undefined,
@@ -35,6 +50,7 @@ describe("Home discovery", () => {
 
   it("renders the product promise, ordered Scenario rows, process, and trust routes", async () => {
     const html = await container.renderToString(HomePage, {
+      props: { scenarios: renderScenarios },
       request: new Request("https://stackbriefs.test/"),
     });
 
@@ -52,8 +68,9 @@ describe("Home discovery", () => {
     expect(html).toContain("Prerequisite");
     expect(html).toContain("Suitable for");
     expect(html).toContain("Not suitable for");
-    expect(html).toContain("4 candidates");
-    expect(html).toContain("5 dimensions");
+    expect(html).toContain("2 candidates");
+    expect(html).toContain("3 dimensions");
+    expect(html).toContain("4 dimensions");
     expect(html).toContain("Last reviewed");
     expect(html).toContain("Narrow");
     expect(html).toContain("Compare");
