@@ -8,6 +8,17 @@ import {
   projectLifecycleRedirects,
   type LifecycleRedirect,
 } from "../domain/lifecycle-routes";
+import type { PublicationAssembly } from "../domain/model";
+
+export function assertLifecycleReplacementsValid(publication: Pick<PublicationAssembly, "issues">) {
+  const invalidReplacements = publication.issues.filter((issue) => issue.code === "invalid_replacement");
+  if (invalidReplacements.length === 0) return;
+
+  throw new Error([
+    "Lifecycle replacement validation failed:",
+    ...invalidReplacements.map((issue) => `${issue.path}: ${issue.message}`),
+  ].join("\n"));
+}
 
 export function renderCloudflareRedirects(
   existing: string,
@@ -39,6 +50,7 @@ export function lifecycleRedirects(): AstroIntegration {
           target: resolveBuildTarget(process.env.STACKBRIEFS_BUILD_TARGET),
           asOf: process.env.STACKBRIEFS_BUILD_DATE ?? new Date().toISOString().slice(0, 10),
         });
+        assertLifecycleReplacementsValid(publication);
         redirects = projectLifecycleRedirects(publication);
         updateConfig({
           redirects: Object.fromEntries(redirects.map((redirect) => [

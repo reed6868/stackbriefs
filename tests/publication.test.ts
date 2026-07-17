@@ -157,11 +157,16 @@ describe("publication assembly", () => {
     });
 
     retired.scenarios[1]!.status = "draft";
-    const invalid = scenarioOutcome(assemblePublication(retired, development), "writing-assistants");
+    const invalidAssembly = assemblePublication(retired, development);
+    const invalid = scenarioOutcome(invalidAssembly, "writing-assistants");
     expect(invalid.kind).toBe("blocked");
     if (invalid.kind === "blocked") {
       expect(invalid.issues).toContainEqual(expect.objectContaining({ code: "invalid_replacement" }));
     }
+    expect(invalidAssembly.releaseReady).toBe(false);
+    expect(invalidAssembly.publicInputs.scenarioRedirects).not.toContainEqual(
+      expect.objectContaining({ from: "/decision/writing-assistants" }),
+    );
   });
 
   it("rejects a replacement whose raw record is published but final outcome is blocked", async () => {
@@ -171,7 +176,8 @@ describe("publication assembly", () => {
     graph.scenarios[0]!.replacementSlug = "meeting-assistants";
     graph.tools.find((tool) => tool.id === "tool-charlie")!.status = "draft";
 
-    const outcome = scenarioOutcome(assemblePublication(graph, development), "writing-assistants");
+    const assembly = assemblePublication(graph, development);
+    const outcome = scenarioOutcome(assembly, "writing-assistants");
     expect(outcome.kind).toBe("blocked");
     if (outcome.kind === "blocked") {
       expect(outcome.issues).toContainEqual(
@@ -181,6 +187,33 @@ describe("publication assembly", () => {
         }),
       );
     }
+    expect(assembly.releaseReady).toBe(false);
+    expect(assembly.publicInputs.scenarioRedirects).toEqual([]);
+    expect(scenarioOutcome(assembly, "meeting-assistants").kind).toBe("blocked");
+  });
+
+  it("fails release validation when a Tool replacement does not produce an exposed Tool", async () => {
+    const graph = await loadGraph();
+    const alpha = graph.tools.find((tool) => tool.id === "tool-alpha")!;
+    alpha.status = "retired";
+    alpha.firstPublishedAt = "2026-07-10";
+    alpha.replacementSlug = "bravo-draft";
+
+    const assembly = assemblePublication(graph, development);
+    const outcome = assembly.toolOutcomes.find((item) => item.slug === "alpha-writer");
+
+    expect(outcome).toMatchObject({ kind: "blocked", slug: "alpha-writer" });
+    if (outcome?.kind === "blocked") {
+      expect(outcome.issues).toContainEqual(
+        expect.objectContaining({
+          code: "invalid_replacement",
+          message: expect.stringContaining("does not produce an exposed Tool outcome"),
+        }),
+      );
+    }
+    expect(assembly.releaseReady).toBe(false);
+    expect(assembly.publicInputs.toolRedirects).toEqual([]);
+    expect(scenarioOutcome(assembly, "meeting-assistants").kind).toBe("published");
   });
 
   it("uses firstPublishedAt to distinguish hidden content from noindex status outcomes", async () => {

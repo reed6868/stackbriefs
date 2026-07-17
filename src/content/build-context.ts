@@ -1,8 +1,6 @@
 import type { PublicationOptions } from "../domain/model";
 import { resolveBuildTarget } from "./build-target";
 
-export { resolveBuildTarget } from "./build-target";
-
 export function publicationOptionsFromEnvironment(): PublicationOptions {
   return {
     target: resolveBuildTarget(import.meta.env.STACKBRIEFS_BUILD_TARGET),

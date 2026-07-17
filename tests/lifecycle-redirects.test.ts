@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { renderCloudflareRedirects } from "../src/integrations/lifecycle-redirects";
+import {
+  assertLifecycleReplacementsValid,
+  renderCloudflareRedirects,
+} from "../src/integrations/lifecycle-redirects";
 
 describe("lifecycle redirect output", () => {
   it("preserves static rules and appends stable deduplicated permanent redirects", () => {
@@ -16,5 +19,17 @@ describe("lifecycle redirect output", () => {
       "/tool/old /tool/current 301",
       "",
     ].join("\n"));
+  });
+
+  it("rejects invalid replacement issues before redirect configuration", () => {
+    expect(() => assertLifecycleReplacementsValid({
+      issues: [{
+        code: "invalid_replacement",
+        path: "scenarios[scenario-retired].replacementSlug",
+        message: 'replacement "missing-scenario" does not exist',
+      }],
+    })).toThrow(
+      'Lifecycle replacement validation failed:\nscenarios[scenario-retired].replacementSlug: replacement "missing-scenario" does not exist',
+    );
   });
 });

@@ -72,14 +72,17 @@ function statusRoute(
 }
 
 export function projectScenarioRoutePaths(assembly: PublicationAssembly) {
+  const publishedSlugs = new Set(assembly.publicInputs.decisionRouteSlugs);
+  const statusSlugs = new Set(assembly.publicInputs.statusScenarioSlugs);
+
   return assembly.scenarioOutcomes.flatMap((outcome): ScenarioRoutePath[] => {
-    if (outcome.kind === "published") {
+    if (outcome.kind === "published" && publishedSlugs.has(outcome.slug)) {
       return [{
         params: { scenario: outcome.slug },
         props: { route: { kind: "published", scenario: outcome.scenario } satisfies PublishedScenarioRoute },
       }];
     }
-    if ((outcome.kind === "blocked" || outcome.kind === "retired") && outcome.firstPublishedAt) {
+    if ((outcome.kind === "blocked" || outcome.kind === "retired") && statusSlugs.has(outcome.slug)) {
       return [{
         params: { scenario: outcome.slug },
         props: { route: statusRoute(outcome.kind, outcome.title, "Scenario") },
@@ -90,15 +93,18 @@ export function projectScenarioRoutePaths(assembly: PublicationAssembly) {
 }
 
 export function projectToolRoutePaths(assembly: PublicationAssembly) {
+  const exposedSlugs = new Set(assembly.publicInputs.exposedToolSlugs);
+  const statusSlugs = new Set(assembly.publicInputs.statusToolSlugs);
+
   return assembly.toolOutcomes.flatMap((outcome): ToolRoutePath[] => {
-    if (outcome.kind === "exposed-tool") {
+    if (outcome.kind === "exposed-tool" && exposedSlugs.has(outcome.slug)) {
       const detail = projectToolDetail(assembly, outcome.slug);
       return detail ? [{
         params: { slug: outcome.slug },
         props: { route: { kind: "published", detail } satisfies PublishedToolRoute },
       }] : [];
     }
-    if ((outcome.kind === "blocked" || outcome.kind === "retired") && outcome.firstPublishedAt) {
+    if ((outcome.kind === "blocked" || outcome.kind === "retired") && statusSlugs.has(outcome.slug)) {
       return [{
         params: { slug: outcome.slug },
         props: { route: statusRoute(outcome.kind, outcome.name, "Tool page") },
@@ -110,13 +116,7 @@ export function projectToolRoutePaths(assembly: PublicationAssembly) {
 
 export function projectLifecycleRedirects(assembly: PublicationAssembly): LifecycleRedirect[] {
   return [
-    ...assembly.scenarioOutcomes.flatMap((outcome): LifecycleRedirect[] =>
-      outcome.kind === "replacement"
-        ? [{ from: `/decision/${outcome.slug}`, to: outcome.redirectTo.href, statusCode: outcome.statusCode }]
-        : []),
-    ...assembly.toolOutcomes.flatMap((outcome): LifecycleRedirect[] =>
-      outcome.kind === "replacement"
-        ? [{ from: `/tool/${outcome.slug}`, to: outcome.redirectTo.href, statusCode: outcome.statusCode }]
-        : []),
+    ...assembly.publicInputs.scenarioRedirects,
+    ...assembly.publicInputs.toolRedirects,
   ].sort((left, right) => left.from.localeCompare(right.from, "en"));
 }

@@ -42,8 +42,12 @@ export function assemblePublication(graph: ContentGraph, options: PublicationOpt
     toolOutcomes.filter((outcome) => outcome.kind === "exposed-tool").map((outcome) => outcome.id),
   );
   const offerAssembly = assembleOffers(graph, exposedToolIds, options.target, diagnostics.offerIssues);
-  const releaseBlockingIssues = [...diagnostics.globalIssues];
-  const issues = [...scenarioIssues, ...toolIssues, ...releaseBlockingIssues];
+  const releaseBlockingIssues = [
+    ...diagnostics.globalIssues,
+    ...scenarioIssues.filter((issue) => issue.code === "invalid_replacement"),
+    ...toolIssues.filter((issue) => issue.code === "invalid_replacement"),
+  ];
+  const issues = [...scenarioIssues, ...toolIssues, ...diagnostics.globalIssues];
   const publishedRealScenarioCount = scenarioOutcomes.filter(
     (outcome) => outcome.kind === "published" && !outcome.fixture,
   ).length;

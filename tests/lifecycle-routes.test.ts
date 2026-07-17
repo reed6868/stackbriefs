@@ -13,6 +13,7 @@ import type {
   ScenarioPublicationOutcome,
   ToolPublicationOutcome,
 } from "../src/domain/model";
+import { assemblePublicInputs } from "../src/domain/public-inputs";
 import { assemblePublication } from "../src/domain/publication";
 
 async function readCollection<Name extends keyof ContentGraph>(name: Name): Promise<ContentGraph[Name]> {
@@ -34,7 +35,12 @@ function withOutcomes(
   scenarioOutcomes: readonly ScenarioPublicationOutcome[],
   toolOutcomes: readonly ToolPublicationOutcome[],
 ): PublicationAssembly {
-  return { ...baseline, scenarioOutcomes, toolOutcomes };
+  return {
+    ...baseline,
+    scenarioOutcomes,
+    toolOutcomes,
+    publicInputs: assemblePublicInputs(scenarioOutcomes, toolOutcomes, baseline.target),
+  };
 }
 
 describe("lifecycle route projection", () => {
