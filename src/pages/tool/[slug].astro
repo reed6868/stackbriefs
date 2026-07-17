@@ -1,25 +1,33 @@
 ---
 import { assembleContentCollections } from "../../content/assemble";
 import { publicationOptionsFromEnvironment } from "../../content/build-context";
+import LifecycleStatusPage from "../../components/LifecycleStatusPage.astro";
 import ToolDetail from "../../components/tool/ToolDetail.astro";
-import { projectToolDetailPaths, type ToolDetailProjection } from "../../domain/tool-detail";
+import {
+  projectToolRoutePaths,
+  type ToolRoute,
+} from "../../domain/lifecycle-routes";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 interface Props {
-  detail: ToolDetailProjection;
+  route: ToolRoute;
 }
 
 export async function getStaticPaths() {
   const publication = await assembleContentCollections(publicationOptionsFromEnvironment());
-  return projectToolDetailPaths(publication);
+  return projectToolRoutePaths(publication);
 }
 
-const { detail } = Astro.props;
+const { route } = Astro.props;
 ---
 
-<BaseLayout
-  title={`${detail.tool.name} | StackBriefs`}
-  description={`${detail.tool.summary} Review published Scenario contexts, limitations, hands-on status, and verification steps.`}
->
-  <ToolDetail detail={detail} />
-</BaseLayout>
+{route.kind === "published" ? (
+  <BaseLayout
+    title={`${route.detail.tool.name} | StackBriefs`}
+    description={`${route.detail.tool.summary} Review published Scenario contexts, limitations, hands-on status, and verification steps.`}
+  >
+    <ToolDetail detail={route.detail} />
+  </BaseLayout>
+) : (
+  <LifecycleStatusPage route={route} />
+)}

@@ -1,0 +1,20 @@
+---
+import type { LifecycleStatusRoute } from "../domain/lifecycle-routes";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import StatusPage from "./StatusPage.astro";
+
+interface Props {
+  route: LifecycleStatusRoute;
+}
+
+const { route } = Astro.props;
+---
+
+<BaseLayout
+  title={route.documentTitle}
+  description={route.description}
+  noindex={route.noindex}
+  breadcrumbs={[{ label: "Home", href: "/" }, { label: route.breadcrumbLabel }]}
+>
+  <StatusPage status={route.status} title={route.heading} message={route.message} />
+</BaseLayout>

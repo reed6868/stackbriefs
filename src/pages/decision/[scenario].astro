@@ -2,32 +2,36 @@
 import { assembleContentCollections } from "../../content/assemble";
 import { publicationOptionsFromEnvironment } from "../../content/build-context";
 import DecisionWorkspace from "../../components/decision/DecisionWorkspace.astro";
+import LifecycleStatusPage from "../../components/LifecycleStatusPage.astro";
 import { evaluateDecision } from "../../domain/decision";
-import type { DomainScenario } from "../../domain/model";
+import {
+  projectScenarioRoutePaths,
+  type ScenarioRoute,
+} from "../../domain/lifecycle-routes";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 interface Props {
-  scenario: DomainScenario;
+  route: ScenarioRoute;
 }
 
 export async function getStaticPaths() {
   const publication = await assembleContentCollections(publicationOptionsFromEnvironment());
-  return publication.scenarioOutcomes.flatMap((outcome) =>
-    outcome.kind === "published"
-      ? [{ params: { scenario: outcome.slug }, props: { scenario: outcome.scenario } }]
-      : [],
-  );
+  return projectScenarioRoutePaths(publication);
 }
 
-const { scenario } = Astro.props;
-const evaluation = evaluateDecision(scenario, []);
+const { route } = Astro.props;
+const evaluation = route.kind === "published" ? evaluateDecision(route.scenario, []) : undefined;
 ---
 
-<BaseLayout
-  title={`${scenario.title} | StackBriefs`}
-  description={`${scenario.goal} Review Scenario boundaries, decision criteria, evidence, and limitations.`}
-  breadcrumbs={[{ label: "Home", href: "/" }, { label: scenario.title }]}
->
-  <DecisionWorkspace scenario={scenario} evaluation={evaluation} />
-  <p class="decision-return"><a href="/#scenarios">Browse all Scenarios</a></p>
-</BaseLayout>
+{route.kind === "published" && evaluation ? (
+  <BaseLayout
+    title={`${route.scenario.title} | StackBriefs`}
+    description={`${route.scenario.goal} Review Scenario boundaries, decision criteria, evidence, and limitations.`}
+    breadcrumbs={[{ label: "Home", href: "/" }, { label: route.scenario.title }]}
+  >
+    <DecisionWorkspace scenario={route.scenario} evaluation={evaluation} />
+    <p class="decision-return"><a href="/#scenarios">Browse all Scenarios</a></p>
+  </BaseLayout>
+) : route.kind === "status" ? (
+  <LifecycleStatusPage route={route} />
+) : null}

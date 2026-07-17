@@ -1,16 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const host = "127.0.0.1";
-const port = 4327;
-const baseURL = `http://${host}:${port}`;
+const baseURL = "http://127.0.0.1:4328";
 
 export default defineConfig({
   testDir: "./tests/browser",
-  testIgnore: "lifecycle-built.test.ts",
-  outputDir: "./test-results",
+  testMatch: "lifecycle-built.test.ts",
+  outputDir: "./test-results/lifecycle",
   fullyParallel: false,
-  forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? 1 : 0,
   workers: 1,
   reporter: "line",
   use: {
@@ -23,7 +19,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: `npm run build && npm run preview -- --host ${host} --port ${port}`,
+    command: "node tests/support/lifecycle-preview.ts",
     url: baseURL,
     reuseExistingServer: false,
     timeout: 120_000,
@@ -36,11 +32,6 @@ export default defineConfig({
     {
       name: "webkit",
       use: { ...devices["Desktop Safari"], viewport: { width: 1280, height: 800 } },
-    },
-    {
-      name: "firefox-smoke",
-      testMatch: "**/home-to-decision.test.ts",
-      use: { ...devices["Desktop Firefox"], viewport: { width: 1280, height: 800 } },
     },
   ],
 });
