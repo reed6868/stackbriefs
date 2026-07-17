@@ -1841,4 +1841,10 @@ html.filter-open {
   :focus-visible {
     outline-color: Highlight;
   }
+
+  .menu-button span,
+  .menu-button span::before,
+  .menu-button span::after {
+    background: ButtonText;
+  }
 }
