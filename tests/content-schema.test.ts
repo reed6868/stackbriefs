@@ -308,6 +308,25 @@ describe("authoritative content schema", () => {
     expect(() => toolSchema.parse({ ...baseGraph.tools[0], officialUrl: "http://alpha.example" })).toThrow(
       /https/i,
     );
+    expect(() =>
+      toolSchema.parse({ ...baseGraph.tools[0], officialUrl: "https://user:password@alpha.example" }),
+    ).toThrow(/credentials/i);
+    for (const src of [
+      "https://alpha.example/logo.svg",
+      "//alpha.example/logo.svg",
+      "javascript:alert(1)",
+      "data:image/svg+xml,<svg></svg>",
+      "/../private/logo.svg",
+      "/tool-logos/alpha.svg?cache=unsafe",
+    ]) {
+      expect(() =>
+        toolSchema.parse({ ...baseGraph.tools[0], logo: { src, alt: "Unsafe logo" } }),
+      ).toThrow(/local public asset/i);
+    }
+    expect(toolSchema.parse({
+      ...baseGraph.tools[0],
+      logo: { src: "/tool-logos/alpha.svg", alt: "Alpha logo" },
+    }).logo?.src).toBe("/tool-logos/alpha.svg");
     expect(() => toolSchema.parse({ ...baseGraph.tools[0], lastReviewedAt: "2026-02-30" })).toThrow(
       /valid ISO calendar date/i,
     );
@@ -317,6 +336,9 @@ describe("authoritative content schema", () => {
     expect(() => sourceSchema.parse({ ...baseGraph.sources[0], sourceUrl: "javascript:alert(1)" })).toThrow(
       /https/i,
     );
+    expect(() =>
+      offerSchema.parse({ ...baseGraph.offers[0], affiliateUrl: "https://affiliate@example.com/offer" }),
+    ).toThrow(/credentials/i);
   });
 
   it("preserves first-publication lifecycle semantics", () => {

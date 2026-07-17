@@ -7,6 +7,7 @@ import {
   identifier,
   idPattern,
   isoDate,
+  localPublicImagePath,
   nonEmptyText,
   uniqueStrings,
 } from "./primitives";
@@ -150,7 +151,7 @@ export const toolSchema = routeFieldsSchema
     name: nonEmptyText,
     summary: nonEmptyText,
     officialUrl: httpsUrl,
-    logo: z.object({ src: nonEmptyText, alt: nonEmptyText }).strict().optional(),
+    logo: z.object({ src: localPublicImagePath, alt: nonEmptyText }).strict().optional(),
   })
   .strict();
 

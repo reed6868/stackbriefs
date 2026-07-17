@@ -1,0 +1,85 @@
+{
+  "task": "SB-405",
+  "artifact": "dist/_headers",
+  "routePattern": "/*",
+  "headers": {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Content-Type-Options": "nosniff",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+  },
+  "cspDirectives": {
+    "default-src": [
+      "'self'"
+    ],
+    "script-src": [
+      "'self'"
+    ],
+    "style-src": [
+      "'self'"
+    ],
+    "img-src": [
+      "'self'"
+    ],
+    "font-src": [
+      "'self'"
+    ],
+    "connect-src": [
+      "'none'"
+    ],
+    "media-src": [
+      "'none'"
+    ],
+    "object-src": [
+      "'none'"
+    ],
+    "frame-src": [
+      "'none'"
+    ],
+    "worker-src": [
+      "'none'"
+    ],
+    "manifest-src": [
+      "'self'"
+    ],
+    "base-uri": [
+      "'none'"
+    ],
+    "frame-ancestors": [
+      "'none'"
+    ],
+    "form-action": [
+      "'self'"
+    ],
+    "upgrade-insecure-requests": []
+  },
+  "validatedOutput": {
+    "htmlFiles": 10,
+    "scriptAssets": [
+      "/_astro/DecisionWorkspace.astro_astro_type_script_index_0_lang.BWNXyvtT.js",
+      "/_astro/MobileNav.astro_astro_type_script_index_0_lang.CzXcq5yZ.js",
+      "/_astro/SiteHeader.astro_astro_type_script_index_0_lang.DELKwO73.js",
+      "/_astro/ToolDetail.astro_astro_type_script_index_0_lang.B_o0k1IS.js"
+    ],
+    "stylesheetAssets": [
+      "/_astro/BaseLayout.C1Y-BNz1.css"
+    ],
+    "imageAssets": [
+      "/_astro/stackbriefs-mark.Cs5n3fVn.svg"
+    ],
+    "manifestAssets": [
+      "/site.webmanifest"
+    ],
+    "fontReferences": [
+      "/fonts/geist-latin.woff2",
+      "/fonts/geist-mono-latin.woff2"
+    ],
+    "inlineExecutableScripts": 0,
+    "unapprovedResourceUrls": 0,
+    "unapprovedRuntimeConnections": 0
+  },
+  "result": {
+    "errors": 0,
+    "warnings": 0
+  }
+}
