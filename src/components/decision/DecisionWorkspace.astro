@@ -7,6 +7,7 @@ import ExcludedCandidateList from "./ExcludedCandidateList.astro";
 import ResultSummary from "./ResultSummary.astro";
 import ScenarioHeader from "./ScenarioHeader.astro";
 import ZeroResults from "./ZeroResults.astro";
+import FilterDialog from "./FilterDialog.astro";
 
 interface Props {
   scenario: DomainScenario;
@@ -15,26 +16,42 @@ interface Props {
 
 const { scenario, evaluation } = Astro.props;
 const candidates = new Map<string, DomainCandidate>(scenario.candidates.map((candidate) => [candidate.id, candidate]));
+const serializedScenario = encodeURIComponent(JSON.stringify(scenario));
 ---
 
-<article class="decision-page" data-fixture={scenario.fixture ? "true" : undefined}>
+<article
+  class="decision-page"
+  data-fixture={scenario.fixture ? "true" : undefined}
+  data-decision-controller
+  data-decision-scenario={serializedScenario}
+>
   <ScenarioHeader scenario={scenario} />
   <div class="decision-workspace">
     <CriteriaPanel scenario={scenario} conditions={evaluation.appliedConditions} />
     <div class="decision-results">
       <ResultSummary evaluation={evaluation} />
-      {evaluation.matches.length > 0 && (
-        <div class="candidate-list" aria-label="Matching tools">
+      <div
+        class="candidate-list"
+        aria-label="Matching tools"
+        data-candidate-list
+        hidden={evaluation.matches.length === 0}
+      >
           {evaluation.matches.map((match) => {
             const candidate = candidates.get(match.candidateId);
             return candidate
               ? <CandidateCard scenario={scenario} candidate={candidate} evaluation={match} />
               : null;
           })}
-        </div>
-      )}
+      </div>
       <ZeroResults scenario={scenario} evaluation={evaluation} />
       <ExcludedCandidateList scenario={scenario} evaluation={evaluation} />
     </div>
   </div>
+  <FilterDialog scenario={scenario} conditions={evaluation.appliedConditions} />
 </article>
+
+<script>
+  import { mountDecisionControllers } from "../../browser/decision-controller";
+
+  mountDecisionControllers();
+</script>

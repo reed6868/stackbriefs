@@ -18,16 +18,22 @@ const rows = [...scenario.dimensions]
   });
 ---
 
-<section class="evidence-summary" aria-label={`Evidence summary for ${candidate.tool.name}`}>
+<section
+  class="evidence-summary"
+  aria-label={`Evidence summary for ${candidate.tool.name}`}
+  data-candidate-evidence-summary={candidate.id}
+>
   <h4>Evidence summary</h4>
   <dl>
     {rows.map(({ dimension, claim }) => {
       const lastCheckedAt = relevantCheckDate(claim);
       return (
-        <div class="evidence-row">
+        <div class="evidence-row" data-evidence-row={dimension.id}>
           <dt>{dimension.label}</dt>
           <dd>
-            <span class="evidence-row__value">{formatDimensionValue(dimension, claim.evidence.value)}</span>
+            <span class="evidence-row__value" data-evidence-value>
+              {formatDimensionValue(dimension, claim.evidence.value)}
+            </span>
             <EvidenceBadge state={claim.evidence.state} />
             {lastCheckedAt && (
               <span class="evidence-row__date">

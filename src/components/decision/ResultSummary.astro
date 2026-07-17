@@ -1,27 +1,17 @@
 ---
 import type { DecisionEvaluation } from "../../domain/decision";
+import { resultSummaryText } from "./presentation";
 
 interface Props {
   evaluation: DecisionEvaluation;
 }
 
 const { evaluation } = Astro.props;
-const requiredCount = evaluation.appliedConditions.filter((condition) => condition.mode === "required").length;
-const optionalCount = evaluation.appliedConditions.length - requiredCount;
+const summary = resultSummaryText(evaluation);
 ---
 
-<header id="result-summary" class="result-summary" aria-live="polite">
+<header id="result-summary" class="result-summary" aria-live="polite" tabindex="-1" data-result-summary>
   <p class="fixture-label">Results</p>
-  <h2>
-    {evaluation.appliedConditions.length === 0
-      ? `${evaluation.matches.length} ${evaluation.matches.length === 1 ? "tool" : "tools"} in this Scenario`
-      : evaluation.matches.length === 0
-      ? "No tools match every required condition"
-      : `${evaluation.matches.length} ${evaluation.matches.length === 1 ? "tool matches" : "tools match"}`}
-  </h2>
-  <p>
-    {evaluation.appliedConditions.length === 0
-      ? "No requirements are applied yet. Review each Tool's evidence and limitation."
-      : `${requiredCount} required ${requiredCount === 1 ? "condition" : "conditions"} and ${optionalCount} optional ${optionalCount === 1 ? "preference" : "preferences"} applied.`}
-  </p>
+  <h2 data-result-heading>{summary.heading}</h2>
+  <p data-result-description>{summary.description}</p>
 </header>

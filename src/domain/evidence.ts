@@ -9,6 +9,7 @@ import type {
   ResolveEvidenceInput,
 } from "./evidence-types";
 import { addDaysToIsoDate, assertIsoDate, earlierIsoDate, latestIsoDate } from "./iso-date";
+import type { DomainScenario } from "./model";
 
 export type {
   EvidenceAuthority,
@@ -236,4 +237,20 @@ export function downgradeEvidenceForBrowser(
     };
   }
   return deployed;
+}
+
+export function downgradeScenarioEvidenceForBrowser(
+  scenario: DomainScenario,
+  browserAsOf: string,
+): DomainScenario {
+  return {
+    ...scenario,
+    candidates: scenario.candidates.map((candidate) => ({
+      ...candidate,
+      claims: candidate.claims.map((claim) => ({
+        ...claim,
+        evidence: downgradeEvidenceForBrowser(claim.evidence, browserAsOf),
+      })),
+    })),
+  };
 }

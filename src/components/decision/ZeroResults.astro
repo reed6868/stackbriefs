@@ -11,13 +11,16 @@ const { scenario, evaluation } = Astro.props;
 const names = new Map(scenario.candidates.map((candidate) => [candidate.id, candidate.tool.name]));
 ---
 
-{evaluation.matches.length === 0 && (
-  <section class="zero-results" aria-labelledby="zero-results-title">
+<section
+  class="zero-results"
+  aria-labelledby="zero-results-title"
+  data-zero-results
+  hidden={evaluation.matches.length > 0}
+>
     <p class="fixture-label">Recovery</p>
     <h2 id="zero-results-title">Review one requirement at a time</h2>
     <p>No requirement has been changed automatically.</p>
-    {evaluation.relaxations.length > 0 ? (
-      <ul>
+    <ul data-relaxation-list hidden={evaluation.relaxations.length === 0}>
         {evaluation.relaxations.map((relaxation) => (
           <li>
             <strong>Review {relaxation.label}</strong>
@@ -25,11 +28,13 @@ const names = new Map(scenario.candidates.map((candidate) => [candidate.id, cand
               {relaxation.candidateIds.map((candidateId) => names.get(candidateId)).filter(Boolean).join(", ")}
               {" could match if this requirement changes."}
             </span>
+            <button type="button" class="text-button" data-relax-dimension={relaxation.dimensionId}>
+              Make {relaxation.label} optional
+            </button>
           </li>
         ))}
-      </ul>
-    ) : (
-      <p>Clear a required condition or return to the Scenario boundaries before continuing.</p>
-    )}
+    </ul>
+    <p data-relaxation-empty hidden={evaluation.relaxations.length > 0}>
+      Clear a required condition or return to the Scenario boundaries before continuing.
+    </p>
   </section>
-)}

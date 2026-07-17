@@ -1,0 +1,32 @@
+---
+import type { DecisionCondition } from "../../domain/decision";
+import type { DomainScenario } from "../../domain/model";
+import FilterControl from "./FilterControl.astro";
+
+interface Props {
+  scenario: DomainScenario;
+  conditions: readonly DecisionCondition[];
+  variant: "desktop" | "mobile";
+}
+
+const { scenario, conditions, variant } = Astro.props;
+const active = new Map(conditions.map((condition) => [condition.dimensionId, condition]));
+const dimensions = [...scenario.dimensions].sort((left, right) => left.order - right.order);
+---
+
+<form class="decision-filter-form" data-decision-filter-form={variant} novalidate>
+  <div class="decision-filter-form__controls">
+    {dimensions.map((dimension) => (
+      <FilterControl dimension={dimension} condition={active.get(dimension.id)} scope={variant} />
+    ))}
+  </div>
+  {variant === "desktop" ? (
+    <button type="button" class="text-button" data-clear-all>Clear all filters</button>
+  ) : (
+    <div class="filter-sheet__actions">
+      <button type="button" class="text-button" data-mobile-cancel>Cancel</button>
+      <button type="button" class="text-button" data-clear-all>Clear all</button>
+      <button type="submit" class="primary-button">Apply filters</button>
+    </div>
+  )}
+</form>
