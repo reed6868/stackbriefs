@@ -298,6 +298,7 @@ function mountDecisionController(root: HTMLElement) {
         .map((item) => [item.dataset.shortlistItem ?? "", item] as const),
     );
     const shortlistToggles = [...root.querySelectorAll<HTMLButtonElement>("[data-shortlist-toggle]")];
+    const toolDetailLinks = [...root.querySelectorAll<HTMLAnchorElement>("[data-tool-detail-link]")];
     const comparisonView = createComparisonView(root);
     const forms = [desktopForm, mobileForm];
     let state: UrlState;
@@ -319,6 +320,16 @@ function mountDecisionController(root: HTMLElement) {
       const current = `${location.pathname}${location.search}${location.hash}`;
       if (target === current) return;
       history[`${mode}State`](null, "", target);
+    };
+
+    const syncToolDetailLinks = () => {
+      const returnHref = canonicalUrl(state);
+      toolDetailLinks.forEach((link) => {
+        const target = new URL(link.href, location.origin);
+        target.searchParams.set("scenario", scenario.slug);
+        target.searchParams.set("return", returnHref);
+        link.href = `${target.pathname}${target.search}`;
+      });
     };
 
     const syncShortlist = () => {
@@ -383,6 +394,7 @@ function mountDecisionController(root: HTMLElement) {
       renderEvaluation(root, scenario, evaluation);
       syncShortlist();
       syncComparison();
+      syncToolDetailLinks();
     };
 
     const applyConditions = (
@@ -402,6 +414,7 @@ function mountDecisionController(root: HTMLElement) {
       writeHistory("replace");
       syncShortlist();
       syncComparison();
+      syncToolDetailLinks();
     };
 
     const restoreLocation = (focusSummary: boolean) => {
