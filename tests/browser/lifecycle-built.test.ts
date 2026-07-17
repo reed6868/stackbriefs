@@ -41,10 +41,26 @@ test("replacement route resolves to the current published Scenario", async ({ pa
   await assertNoSeriousAxeViolations(page);
 });
 
+test("Decision query and fragment state stay out of canonical metadata", async ({ page }) => {
+  await page.goto("/decision/meeting-assistants?r=retention-days:lte:7#comparison");
+
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    "https://stackbriefs.pages.dev/decision/meeting-assistants",
+  );
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+    "content",
+    "https://stackbriefs.pages.dev/decision/meeting-assistants",
+  );
+  await expect(page.locator('script[type="application/ld+json"]')).not.toContainText(/retention-days|comparison/);
+});
+
 test("never-published Tool route stays absent", async ({ page }) => {
   const response = await page.goto("/tool/never-launched");
 
   expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle("Page unavailable | StackBriefs");
   await expect(page.locator('[data-status="unavailable"]')).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
 });

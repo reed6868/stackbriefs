@@ -7,6 +7,10 @@ import type {
   ToolPublicationOutcome,
 } from "./model";
 
+export function isIndexableTarget(target: BuildTarget) {
+  return target === "production";
+}
+
 function hasPublicStatusRoute(
   outcome: BlockedScenarioOutcome | BlockedToolOutcome | { kind: "retired"; firstPublishedAt?: string | undefined },
 ) {
@@ -52,6 +56,6 @@ export function assemblePublicInputs(
     })),
     sitemapPaths: discoveryPaths,
     structuredDataPaths: discoveryPaths,
-    indexable: target === "production",
+    indexable: isIndexableTarget(target),
   };
 }

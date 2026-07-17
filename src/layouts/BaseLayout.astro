@@ -3,6 +3,12 @@ import type { BreadcrumbItem } from "../components/Breadcrumbs.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import {
+  buildStructuredData,
+  canonicalUrl,
+  serializeStructuredData,
+  type SeoContent,
+} from "../domain/seo";
 import "../styles/global.css";
 
 interface Props {
@@ -10,12 +16,39 @@ interface Props {
   description: string;
   reading?: boolean;
   breadcrumbs?: BreadcrumbItem[];
+  seoBreadcrumbs?: BreadcrumbItem[];
   noindex?: boolean;
+  indexable: boolean;
+  canonicalPath?: string;
+  structuredData?: SeoContent | undefined;
 }
 
-const { title, description, reading = false, breadcrumbs, noindex = false } = Astro.props;
+const {
+  title,
+  description,
+  reading = false,
+  breadcrumbs,
+  seoBreadcrumbs = breadcrumbs,
+  noindex = false,
+  indexable,
+  canonicalPath = Astro.url.pathname,
+  structuredData,
+} = Astro.props;
 const currentPath = Astro.url.pathname;
 const mainClass = ["page-content", "site-container", reading && "reading-layout"].filter(Boolean).join(" ");
+const isIndexable = indexable && !noindex;
+const site = Astro.site ?? new URL(Astro.url.origin);
+const canonical = isIndexable ? canonicalUrl(site, canonicalPath) : undefined;
+const serializedStructuredData = canonical && structuredData
+  ? serializeStructuredData(buildStructuredData({
+      title,
+      description,
+      canonicalUrl: canonical,
+      site,
+      breadcrumbs: seoBreadcrumbs,
+      content: structuredData,
+    }))
+  : undefined;
 ---
 
 <!doctype html>
@@ -24,7 +57,16 @@ const mainClass = ["page-content", "site-container", reading && "reading-layout"
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {!isIndexable && <meta name="robots" content="noindex, nofollow" />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:site_name" content="StackBriefs" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <meta name="theme-color" content="#F7F8FA" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate icon" href="/favicon.ico" sizes="any" />
@@ -37,6 +79,9 @@ const mainClass = ["page-content", "site-container", reading && "reading-layout"
       crossorigin
     />
     <title>{title}</title>
+    {serializedStructuredData && (
+      <script is:inline type="application/ld+json" set:html={serializedStructuredData} />
+    )}
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>

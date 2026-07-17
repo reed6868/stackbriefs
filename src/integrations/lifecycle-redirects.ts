@@ -2,8 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 
 import type { AstroIntegration } from "astro";
 
-import { assembleFilePublication, publicationContentFiles } from "../content/file-publication";
-import { resolveBuildTarget } from "../content/build-target";
+import { publicationContentFiles } from "../content/file-publication";
 import {
   projectLifecycleRedirects,
   type LifecycleRedirect,
@@ -38,7 +37,7 @@ export function renderCloudflareRedirects(
   return `${lines.join("\n")}\n`;
 }
 
-export function lifecycleRedirects(): AstroIntegration {
+export function lifecycleRedirects(publication: PublicationAssembly): AstroIntegration {
   let redirects: readonly LifecycleRedirect[] = [];
 
   return {
@@ -46,10 +45,6 @@ export function lifecycleRedirects(): AstroIntegration {
     hooks: {
       "astro:config:setup": async ({ addWatchFile, updateConfig }) => {
         publicationContentFiles.forEach((file) => addWatchFile(file));
-        const publication = await assembleFilePublication({
-          target: resolveBuildTarget(process.env.STACKBRIEFS_BUILD_TARGET),
-          asOf: process.env.STACKBRIEFS_BUILD_DATE ?? new Date().toISOString().slice(0, 10),
-        });
         assertLifecycleReplacementsValid(publication);
         redirects = projectLifecycleRedirects(publication);
         updateConfig({

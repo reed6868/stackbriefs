@@ -1,0 +1,38 @@
+{
+  "command": "npm run validate:structured-data",
+  "validator": "https://validator.schema.org/validate",
+  "buildTarget": "production",
+  "buildDate": "2026-07-17",
+  "results": [
+    {
+      "route": "/",
+      "types": ["WebSite"],
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "route": "/methodology",
+      "types": ["BreadcrumbList", "CreativeWork", "WebPage"],
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "route": "/affiliate-disclosure",
+      "types": ["BreadcrumbList", "CreativeWork", "WebPage"],
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "route": "/decision/meeting-assistants",
+      "types": ["BreadcrumbList", "CreativeWork", "WebPage"],
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "route": "/tool/echo-minutes",
+      "types": ["BreadcrumbList", "CreativeWork", "SoftwareApplication"],
+      "errors": 0,
+      "warnings": 0
+    }
+  ]
+}

@@ -122,6 +122,7 @@ describe("P0 route skeleton", () => {
       props: {
         title: "Unavailable | StackBriefs",
         description: "Unavailable page",
+        indexable: false,
         noindex: true,
       },
       request: new Request("https://stackbriefs.test/missing"),

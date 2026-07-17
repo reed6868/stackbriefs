@@ -45,6 +45,7 @@ describe("shared shell", () => {
       props: {
         title: "Reading page | StackBriefs",
         description: "Reading page",
+        indexable: false,
       },
       request: new Request("https://stackbriefs.test/"),
       slots: {
@@ -120,6 +121,7 @@ describe("shared shell", () => {
       props: {
         title: "Fixture | StackBriefs",
         description: "Fixture page",
+        indexable: false,
       },
       request: new Request("https://stackbriefs.test/"),
       slots: { default: "<h1>Fixture page</h1>" },
@@ -160,6 +162,7 @@ describe("shared shell", () => {
       props: {
         title: "Fixture | StackBriefs",
         description: "Fixture page",
+        indexable: false,
       },
       request: new Request("https://stackbriefs.test/"),
       slots: { default: "<h1>Fixture page</h1>" },
@@ -168,6 +171,7 @@ describe("shared shell", () => {
       props: {
         title: "Methodology | StackBriefs",
         description: "Reading page",
+        indexable: false,
         reading: true,
         breadcrumbs: [{ label: "Home", href: "/" }, { label: "Methodology" }],
       },

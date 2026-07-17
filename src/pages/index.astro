@@ -2,6 +2,7 @@
 import ScenarioRow from "../components/ScenarioRow.astro";
 import { assembleContentCollections } from "../content/assemble";
 import { publicationOptionsFromEnvironment } from "../content/build-context";
+import { seoIndexableFromEnvironment } from "../content/seo-context";
 import { sortHomeScenarios, type HomeScenario } from "../domain/home-discovery";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
@@ -31,11 +32,15 @@ async function loadPublishedScenarios() {
 
 const scenarios = sortHomeScenarios(Astro.props.scenarios ?? await loadPublishedScenarios());
 const fixturePreview = scenarios.some((scenario) => scenario.fixture);
+const indexable = seoIndexableFromEnvironment();
 ---
 
 <BaseLayout
   title="StackBriefs — scenario-first AI tool decisions"
   description="Start with a use case, narrow the options, and verify AI-tool trade-offs."
+  indexable={indexable}
+  canonicalPath="/"
+  structuredData={{ kind: "website" }}
 >
   <header class="home-hero" aria-labelledby="home-title" data-fixture={fixturePreview ? "true" : undefined}>
     <p class="fixture-label">{fixturePreview ? "Fixture preview" : "Decision workspace"}</p>

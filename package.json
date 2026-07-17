@@ -16,11 +16,13 @@
     "test:browser:lifecycle": "playwright test --config=playwright.lifecycle.config.ts",
     "test:browser:firefox": "playwright test tests/browser/home-to-decision.test.ts --project=firefox-smoke",
     "test:browser:smoke": "playwright test tests/browser/home-to-decision.test.ts --project=chromium",
+    "validate:structured-data": "node tests/support/validate-structured-data.ts",
     "build": "astro build",
     "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/mdx": "7.0.2",
+    "@astrojs/sitemap": "3.7.3",
     "@tailwindcss/vite": "4.3.2",
     "astro": "7.0.7",
     "tailwindcss": "4.3.2"

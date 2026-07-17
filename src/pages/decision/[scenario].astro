@@ -27,7 +27,10 @@ const evaluation = route.kind === "published" ? evaluateDecision(route.scenario,
   <BaseLayout
     title={`${route.scenario.title} | StackBriefs`}
     description={`${route.scenario.goal} Review Scenario boundaries, decision criteria, evidence, and limitations.`}
+    indexable={route.indexable}
+    canonicalPath={`/decision/${route.scenario.slug}`}
     breadcrumbs={[{ label: "Home", href: "/" }, { label: route.scenario.title }]}
+    structuredData={route.structuredData ? { kind: "webpage" } : undefined}
   >
     <DecisionWorkspace scenario={route.scenario} evaluation={evaluation} />
     <p class="decision-return"><a href="/#scenarios">Browse all Scenarios</a></p>

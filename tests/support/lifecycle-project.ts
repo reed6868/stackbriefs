@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { cp, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, relative } from "node:path";
 import { promisify } from "node:util";
@@ -27,6 +27,20 @@ async function readJson<Value>(path: string): Promise<Value> {
 
 async function writeJson(path: string, value: unknown) {
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+async function linkDependencies(projectRoot: string) {
+  const target = join(projectRoot, "node_modules");
+  await mkdir(target);
+  const entries = await readdir(dependenciesRoot, { withFileTypes: true });
+
+  await Promise.all(entries
+    .filter((entry) => ![".astro", ".vite", ".vite-temp"].includes(entry.name))
+    .map((entry) => symlink(
+      join(dependenciesRoot, entry.name),
+      join(target, entry.name),
+      entry.isDirectory() ? "dir" : "file",
+    )));
 }
 
 async function writeLifecycleContent(projectRoot: string, invalidReplacement: boolean) {
@@ -149,7 +163,7 @@ export async function createLifecycleProject(options: { invalidReplacement?: boo
       return path === "" || !excludedRoots.has(path.split("/")[0]!);
     },
   });
-  await symlink(dependenciesRoot, join(projectRoot, "node_modules"), "dir");
+  await linkDependencies(projectRoot);
   await writeLifecycleContent(projectRoot, options.invalidReplacement ?? false);
   return projectRoot;
 }

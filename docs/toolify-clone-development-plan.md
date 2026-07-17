@@ -67,6 +67,8 @@ Use native HTML and browser behavior when it already provides correct semantics.
 
 Conditional additions are Playwright plus `@axe-core/playwright` with the first browser interaction slice, `@astrojs/sitemap` during release work, and one Lucide-compatible Astro icon package when a reusable icon set is first needed.
 
+Dependency decision (2026-07-17): SB-404 uses `@astrojs/sitemap` 3.7.3 from the maintained Astro monorepo. It is MIT licensed, was last published 2026-05-26, adds about 30 KB unpacked plus its sitemap-generation dependencies, and runs only during static builds; it adds no browser JavaScript. The integration is enabled only for Production builds and filters against publication-owned public inputs.
+
 Do not add a full component library, client framework, animation library, form framework, or state manager for P0. Record the need, maintenance status, bundle impact, and license in the PR that adds any dependency.
 
 ## 3. Routes and navigation
