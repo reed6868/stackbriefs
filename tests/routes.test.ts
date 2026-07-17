@@ -20,7 +20,6 @@ const routePaths = [
 
 const fixturePlaceholderRoutePaths = [
   "../src/pages/index.astro",
-  "../src/pages/affiliate-disclosure.astro",
 ] as const;
 const execFileAsync = promisify(execFile);
 

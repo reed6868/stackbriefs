@@ -6,7 +6,9 @@ export const shellNavigation = [
 
 export function isCurrentPage(href: string, currentPath: string) {
   const path = href.split("#")[0];
-  const normalizedCurrentPath = currentPath === "/" ? "/" : currentPath.replace(/\/$/, "");
+  const normalizedCurrentPath = currentPath === "/"
+    ? "/"
+    : currentPath.replace(/\.html$/, "").replace(/\/$/, "");
 
   return path !== "/" && path === normalizedCurrentPath;
 }
