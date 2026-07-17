@@ -3,6 +3,7 @@ export type { ContentGraph, ContentGraphInput, ParseContentGraphOptions } from "
 export {
   candidateSchema,
   dimensionSchema,
+  evidenceCategorySchema,
   offerSchema,
   scenarioSchema,
   sourceObservationSchema,
@@ -13,6 +14,7 @@ export {
 export type {
   CandidateContent,
   DimensionContent,
+  EvidenceCategory,
   OfferContent,
   ScenarioContent,
   SourceContent,

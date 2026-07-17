@@ -1,6 +1,8 @@
 import type { DimensionContent, OfferContent, SourceContent } from "./records";
 
 export function validateDimensionObservation(source: SourceContent, dimension: DimensionContent) {
+  if (source.assertion === "not_applicable") return undefined;
+
   if (dimension.valueType === "boolean") {
     return typeof source.observedValue === "boolean"
       ? undefined
@@ -33,6 +35,7 @@ export function validateDimensionObservation(source: SourceContent, dimension: D
 }
 
 export function validateOfferObservation(source: SourceContent, offer: OfferContent) {
+  if (source.assertion === "not_applicable") return "Offer observations must assert a canonical value";
   if (source.observedUnit) return "Offer observations cannot declare a unit";
 
   const claims = {

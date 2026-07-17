@@ -6,9 +6,9 @@
     "toolId": "tool-alpha",
     "limitation": "Fixture observations cover only the documented team plan.",
     "claimBindings": {
-      "commercial-use": { "subjectType": "candidate", "claimKey": "commercial-use" },
-      "export-formats": { "subjectType": "candidate", "claimKey": "export-formats" },
-      "collaboration-mode": { "subjectType": "candidate", "claimKey": "collaboration-mode" }
+      "commercial-use": { "subjectType": "candidate", "claimKey": "commercial-use", "evidenceCategory": "rights", "scope": { "plan": "team", "region": "global" } },
+      "export-formats": { "subjectType": "candidate", "claimKey": "export-formats", "evidenceCategory": "export", "scope": { "plan": "team", "platform": "web" } },
+      "collaboration-mode": { "subjectType": "candidate", "claimKey": "collaboration-mode", "evidenceCategory": "capability", "scope": { "plan": "team", "platform": "web" } }
     },
     "handsOnState": "partially_tested"
   },
@@ -19,9 +19,9 @@
     "toolId": "tool-bravo",
     "limitation": "Fixture observations cover only the documented individual plan.",
     "claimBindings": {
-      "commercial-use": { "subjectType": "candidate", "claimKey": "commercial-use" },
-      "export-formats": { "subjectType": "candidate", "claimKey": "export-formats" },
-      "collaboration-mode": { "subjectType": "candidate", "claimKey": "collaboration-mode" }
+      "commercial-use": { "subjectType": "candidate", "claimKey": "commercial-use", "evidenceCategory": "rights", "scope": { "plan": "individual", "region": "global" } },
+      "export-formats": { "subjectType": "candidate", "claimKey": "export-formats", "evidenceCategory": "export", "scope": { "plan": "individual", "platform": "web" } },
+      "collaboration-mode": { "subjectType": "candidate", "claimKey": "collaboration-mode", "evidenceCategory": "capability", "scope": { "plan": "individual", "platform": "web" } }
     },
     "handsOnState": "not_tested"
   },
@@ -32,10 +32,10 @@
     "toolId": "tool-charlie",
     "limitation": "Fixture observations cover business-plan settings in the EU region.",
     "claimBindings": {
-      "retention-days": { "subjectType": "candidate", "claimKey": "retention-days" },
-      "consent-reminder": { "subjectType": "candidate", "claimKey": "consent-reminder" },
-      "hosting-region": { "subjectType": "candidate", "claimKey": "hosting-region" },
-      "calendar-integrations": { "subjectType": "candidate", "claimKey": "calendar-integrations" }
+      "retention-days": { "subjectType": "candidate", "claimKey": "retention-days", "evidenceCategory": "privacy", "scope": { "plan": "business", "region": "eu" } },
+      "consent-reminder": { "subjectType": "candidate", "claimKey": "consent-reminder", "evidenceCategory": "capability", "scope": { "plan": "business", "platform": "web" } },
+      "hosting-region": { "subjectType": "candidate", "claimKey": "hosting-region", "evidenceCategory": "region", "scope": { "plan": "business", "region": "eu" } },
+      "calendar-integrations": { "subjectType": "candidate", "claimKey": "calendar-integrations", "evidenceCategory": "integration", "scope": { "plan": "business", "platform": "web" } }
     },
     "handsOnState": "tested"
   },
@@ -46,10 +46,10 @@
     "toolId": "tool-delta",
     "limitation": "Fixture observations cover the web application and US hosting only.",
     "claimBindings": {
-      "retention-days": { "subjectType": "candidate", "claimKey": "retention-days" },
-      "consent-reminder": { "subjectType": "candidate", "claimKey": "consent-reminder" },
-      "hosting-region": { "subjectType": "candidate", "claimKey": "hosting-region" },
-      "calendar-integrations": { "subjectType": "candidate", "claimKey": "calendar-integrations" }
+      "retention-days": { "subjectType": "candidate", "claimKey": "retention-days", "evidenceCategory": "privacy", "scope": { "plan": "team", "region": "us" } },
+      "consent-reminder": { "subjectType": "candidate", "claimKey": "consent-reminder", "evidenceCategory": "capability", "scope": { "plan": "team", "platform": "web" } },
+      "hosting-region": { "subjectType": "candidate", "claimKey": "hosting-region", "evidenceCategory": "region", "scope": { "plan": "team", "region": "us" } },
+      "calendar-integrations": { "subjectType": "candidate", "claimKey": "calendar-integrations", "evidenceCategory": "integration", "scope": { "plan": "team", "platform": "web" } }
     },
     "handsOnState": "unavailable"
   }

@@ -1,4 +1,5 @@
 import type { ContentGraph } from "../content/schema";
+import { evidenceCellKey, resolveContentEvidence } from "./content-evidence";
 import type { PublicationAssembly, PublicationOptions } from "./model";
 import { assembleOffers } from "./offer-publication";
 import { assemblePublicInputs } from "./public-inputs";
@@ -10,12 +11,23 @@ import { assembleToolOutcomes } from "./tool-publication";
 export type { PublicationAssembly, PublicationOptions } from "./model";
 
 export function assemblePublication(graph: ContentGraph, options: PublicationOptions): PublicationAssembly {
+  const contentEvidence = resolveContentEvidence(graph, options.asOf);
+  const evidenceByClaim = new Map(
+    contentEvidence.claims.map(({ candidateId, dimensionId, resolution }) => [
+      evidenceCellKey(candidateId, dimensionId),
+      resolution,
+    ]),
+  );
   const diagnostics = collectReferenceDiagnostics(graph, options.publicationHistory ?? []);
   const scenarioOutcomes = assembleScenarioOutcomes(
     graph,
     options,
-    diagnostics.scenarioIssues,
-    diagnostics.invalidScenarioIds,
+    {
+      referenceIssues: diagnostics.scenarioIssues,
+      invalidScenarioIds: diagnostics.invalidScenarioIds,
+      evidenceByClaim,
+      gatingClaims: contentEvidence.gatingClaims,
+    },
   );
   const scenarioIssues = scenarioOutcomes.flatMap((outcome) => (outcome.kind === "blocked" ? outcome.issues : []));
   const toolOutcomes = assembleToolOutcomes(

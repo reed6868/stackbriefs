@@ -7,6 +7,7 @@ import type {
   ToolContent,
   PublicationHistory,
 } from "../content/schema";
+import type { EvidenceResolution } from "./evidence-types";
 
 export type BuildTarget = "development" | "preview" | "production";
 
@@ -14,14 +15,6 @@ export interface PublicationOptions {
   target: BuildTarget;
   asOf: string;
   publicationHistory?: PublicationHistory;
-  gatingClaims?: readonly GatingClaimReadiness[];
-}
-
-export interface GatingClaimReadiness {
-  candidateId: string;
-  dimensionId: string;
-  state: "current" | "stale" | "missing";
-  reason: string;
 }
 
 export interface PublicationIssue {
@@ -36,7 +29,10 @@ export interface DomainClaim {
   subjectType: "candidate" | "tool";
   subjectId: string;
   claimKey: string;
+  evidenceCategory: CandidateContent["claimBindings"][string]["evidenceCategory"];
+  scope: CandidateContent["claimBindings"][string]["scope"];
   sources: readonly SourceContent[];
+  evidence: EvidenceResolution;
 }
 
 export interface DomainCandidate extends Omit<CandidateContent, "claimBindings"> {

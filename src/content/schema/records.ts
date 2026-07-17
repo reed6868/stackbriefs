@@ -154,10 +154,36 @@ export const toolSchema = routeFieldsSchema
   })
   .strict();
 
+export const evidenceCategorySchema = z.enum([
+  "deal",
+  "tracking",
+  "price",
+  "plan",
+  "capability",
+  "integration",
+  "privacy",
+  "rights",
+  "region",
+  "export",
+  "general_research",
+]);
+
+const sourceScopeSchema = z
+  .object({
+    plan: nonEmptyText.optional(),
+    region: nonEmptyText.optional(),
+    platform: nonEmptyText.optional(),
+    version: nonEmptyText.optional(),
+  })
+  .strict()
+  .refine((scope) => Object.values(scope).some(Boolean), "must name at least one material scope");
+
 const claimBindingSchema = z
   .object({
     subjectType: z.enum(["candidate", "tool"]),
     claimKey: identifier,
+    evidenceCategory: evidenceCategorySchema,
+    scope: sourceScopeSchema,
   })
   .strict();
 
@@ -178,16 +204,6 @@ export const candidateSchema = z
     }
   });
 
-const sourceScopeSchema = z
-  .object({
-    plan: nonEmptyText.optional(),
-    region: nonEmptyText.optional(),
-    platform: nonEmptyText.optional(),
-    version: nonEmptyText.optional(),
-  })
-  .strict()
-  .refine((scope) => Object.values(scope).some(Boolean), "must name at least one material scope");
-
 const observedValueSchema = z.union([
   z.boolean(),
   z.string().trim().min(1),
@@ -195,38 +211,68 @@ const observedValueSchema = z.union([
   uniqueStrings(identifier, "observed set values must be unique").min(1),
 ]);
 
-export const sourceSchema = z
-  .object({
-    fixture: z.boolean(),
-    id: identifier,
-    subjectType: z.enum(["candidate", "tool", "offer"]),
-    subjectId: identifier,
-    claimKey: identifier,
-    sourceType: z.enum([
-      "official_legal",
-      "official_pricing",
-      "official_documentation",
-      "official_release_notes",
-      "official_plan_interface",
-      "direct_product_page",
-      "direct_help_page",
-      "stackbriefs_test",
-      "directory",
-      "search_result",
-      "social_post",
-      "community_report",
-      "independent_review",
-    ]),
-    sourceUrl: httpsUrl,
+const sourceBaseSchema = z.object({
+  fixture: z.boolean(),
+  id: identifier,
+  subjectType: z.enum(["candidate", "tool", "offer"]),
+  subjectId: identifier,
+  claimKey: identifier,
+  sourceType: z.enum([
+    "official_legal",
+    "official_pricing",
+    "official_documentation",
+    "official_release_notes",
+    "official_plan_interface",
+    "direct_product_page",
+    "direct_help_page",
+    "stackbriefs_test",
+    "stackbriefs_editorial",
+    "directory",
+    "search_result",
+    "social_post",
+    "community_report",
+    "independent_review",
+  ]),
+  sourceUrl: httpsUrl,
+  scope: sourceScopeSchema,
+  lastCheckedAt: isoDate,
+  effectiveFrom: isoDate.optional(),
+  effectiveTo: isoDate.optional(),
+});
+
+const valueSourceSchema = sourceBaseSchema
+  .extend({
+    assertion: z.enum(["value", "editorial_assessment"]).default("value"),
     observedValue: observedValueSchema,
     observedUnit: identifier.optional(),
-    scope: sourceScopeSchema,
-    lastCheckedAt: isoDate,
-    effectiveFrom: isoDate.optional(),
-    effectiveTo: isoDate.optional(),
   })
-  .strict()
+  .strict();
+
+const notApplicableSourceSchema = sourceBaseSchema
+  .extend({
+    assertion: z.literal("not_applicable"),
+    observedValue: z.undefined().optional(),
+    observedUnit: z.undefined().optional(),
+  })
+  .strict();
+
+export const sourceSchema = z
+  .union([valueSourceSchema, notApplicableSourceSchema])
   .superRefine((source, context) => {
+    if (source.assertion === "editorial_assessment" && source.sourceType !== "stackbriefs_editorial") {
+      context.addIssue({
+        code: "custom",
+        path: ["sourceType"],
+        message: "editorial_assessment must use the explicit stackbriefs_editorial source type",
+      });
+    }
+    if (source.sourceType === "stackbriefs_editorial" && source.assertion !== "editorial_assessment") {
+      context.addIssue({
+        code: "custom",
+        path: ["assertion"],
+        message: "stackbriefs_editorial sources must be explicit editorial_assessment assertions",
+      });
+    }
     if (source.effectiveFrom && source.effectiveTo && source.effectiveFrom > source.effectiveTo) {
       context.addIssue({ code: "custom", path: ["effectiveTo"], message: "cannot be earlier than effectiveFrom" });
     }
@@ -274,3 +320,4 @@ export type CandidateContent = z.infer<typeof candidateSchema>;
 export type SourceContent = z.infer<typeof sourceSchema>;
 export type OfferContent = z.infer<typeof offerSchema>;
 export type DimensionContent = z.infer<typeof dimensionSchema>;
+export type EvidenceCategory = z.infer<typeof evidenceCategorySchema>;
