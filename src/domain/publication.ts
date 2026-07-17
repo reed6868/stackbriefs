@@ -27,10 +27,10 @@ export function assemblePublication(graph: ContentGraph, options: PublicationOpt
 
   if (options.target === "production" && publishedRealScenarioCount === 0) {
     const productionIssue = publicationIssue(
-        "production_requires_published_scenario",
-        "publication.production",
-        "Production requires at least one published non-fixture Scenario",
-      );
+      "production_requires_published_scenario",
+      "publication.production",
+      "Production requires at least one published non-fixture Scenario",
+    );
     issues.push(productionIssue);
     releaseBlockingIssues.push(productionIssue);
   }

@@ -273,6 +273,28 @@ describe("publication assembly", () => {
     );
   });
 
+  it("treats a deleted publication-history identity as a global release blocker", async () => {
+    const assembly = assemblePublication(await loadGraph(), {
+      ...development,
+      publicationHistory: [
+        {
+          recordType: "scenario",
+          id: "deleted-published-scenario",
+          slug: "reserved-scenario-slug",
+          firstPublishedAt: "2026-07-10",
+        },
+      ],
+    });
+
+    expect(assembly.issues).toContainEqual(
+      expect.objectContaining({
+        code: "invalid_content_reference",
+        message: expect.stringContaining('published scenario "deleted-published-scenario" must remain present'),
+      }),
+    );
+    expect(assembly.releaseReady).toBe(false);
+  });
+
   it("keeps pure Domain modules free of Astro, DOM, browser clock, and Offer-to-decision imports", async () => {
     const domainDirectory = new URL("../src/domain/", import.meta.url);
     const filenames = (await readdir(domainDirectory)).filter((filename) => filename.endsWith(".ts"));

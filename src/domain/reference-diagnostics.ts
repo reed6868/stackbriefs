@@ -94,9 +94,13 @@ export function collectReferenceDiagnostics(graph: ContentGraph, publicationHist
       if (!entry) {
         globalIssues.push(diagnostic);
       } else if (entry.recordType === "scenario") {
-        append(scenarioIssues, entry.id, diagnostic);
+        graph.scenarios.some((scenario) => scenario.id === entry.id)
+          ? append(scenarioIssues, entry.id, diagnostic)
+          : globalIssues.push(diagnostic);
       } else {
-        append(toolIssues, entry.id, diagnostic);
+        graph.tools.some((tool) => tool.id === entry.id)
+          ? append(toolIssues, entry.id, diagnostic)
+          : globalIssues.push(diagnostic);
       }
       return;
     }
