@@ -29,6 +29,9 @@ describe("trusted authored content policy", () => {
     await expect(compileTrustedMdx(disclosure)).resolves.toBeDefined();
     await expect(compileTrustedMdx("Contact [the editorial team](mailto:editor@example.com)."))
       .resolves.toBeDefined();
+    await expect(compileTrustedMdx(
+      '<a href="https://example.com" target="_blank" rel="noopener noreferrer">Approved source</a>',
+    )).resolves.toBeDefined();
   });
 
   it.each([
@@ -45,6 +48,8 @@ describe("trusted authored content policy", () => {
     ["protocol-relative URLs", "[unsafe](//example.com/path)"],
     ["remote images", "![tracking pixel](https://example.com/pixel.png)"],
     ["external form actions", "<form action=\"https://example.com/collect\"></form>"],
+    ["new tabs without opener protection", '<a href="https://example.com" target="_blank">Unsafe</a>'],
+    ["explicit opener relationships", '<a href="https://example.com" target="_blank" rel="opener">Unsafe</a>'],
   ])("rejects %s", async (_label, source) => {
     await expect(compileTrustedMdx(source)).rejects.toThrow(/trusted MDX/i);
   });
