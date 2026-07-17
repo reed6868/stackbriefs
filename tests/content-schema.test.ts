@@ -1,4 +1,6 @@
+import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
+import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
 
@@ -6,11 +8,15 @@ import {
   candidateSchema,
   offerSchema,
   parseContentGraph,
+  publicationHistorySchema,
   scenarioSchema,
   sourceSchema,
   toolSchema,
   type ContentGraphInput,
+  validatePublicationHistoryEvolution,
 } from "../src/content/schema";
+
+const execFileAsync = promisify(execFile);
 
 const baseGraph: ContentGraphInput = {
   scenarios: [
@@ -212,6 +218,27 @@ async function readCollection<T>(name: string) {
   return JSON.parse(await readFile(file, "utf8")) as T;
 }
 
+async function readPublicationHistory() {
+  const file = new URL("../src/content/publication-history.json", import.meta.url);
+  return publicationHistorySchema.parse(JSON.parse(await readFile(file, "utf8")));
+}
+
+async function readBasePublicationHistory() {
+  try {
+    const { stdout } = await execFileAsync("git", ["show", "origin/main:src/content/publication-history.json"], {
+      cwd: new URL("..", import.meta.url),
+    });
+    return publicationHistorySchema.parse(JSON.parse(stdout));
+  } catch (error) {
+    const stderr =
+      typeof error === "object" && error !== null && "stderr" in error ? String(error.stderr) : "";
+    if (stderr.includes("exists on disk, but not in 'origin/main'")) {
+      return publicationHistorySchema.parse([]);
+    }
+    throw error;
+  }
+}
+
 describe("authoritative content schema", () => {
   it("accepts legal heterogeneous Scenario fixtures", () => {
     const graph = parseContentGraph(baseGraph);
@@ -225,13 +252,16 @@ describe("authoritative content schema", () => {
   });
 
   it("loads the checked-in collections and proves Scenario-local dimension structures", async () => {
-    const graph = parseContentGraph({
-      scenarios: await readCollection("scenarios"),
-      tools: await readCollection("tools"),
-      candidates: await readCollection("candidates"),
-      sources: await readCollection("sources"),
-      offers: await readCollection("offers"),
-    });
+    const graph = parseContentGraph(
+      {
+        scenarios: await readCollection("scenarios"),
+        tools: await readCollection("tools"),
+        candidates: await readCollection("candidates"),
+        sources: await readCollection("sources"),
+        offers: await readCollection("offers"),
+      },
+      { publicationHistory: await readPublicationHistory() },
+    );
     const dimensionSignatures = graph.scenarios.map((scenario) =>
       scenario.dimensions.map(({ valueType, operator }) => `${valueType}:${operator}`).join(","),
     );
@@ -292,6 +322,82 @@ describe("authoritative content schema", () => {
     ).toThrow(/only when status is retired/i);
   });
 
+  it("rejects changes to published IDs, slugs, and firstPublishedAt", () => {
+    const graph = cloneGraph();
+    graph.tools[0] = {
+      ...graph.tools[0]!,
+      fixture: false,
+      firstPublishedAt: "2026-07-10",
+    };
+    const publicationHistory = [
+      {
+        recordType: "tool" as const,
+        id: "tool-alpha",
+        slug: "alpha",
+        firstPublishedAt: "2026-07-10",
+      },
+    ];
+
+    expect(parseContentGraph(graph, { publicationHistory }).tools[0]?.slug).toBe("alpha");
+
+    const changedSlug = cloneGraph();
+    changedSlug.tools[0] = {
+      ...changedSlug.tools[0]!,
+      fixture: false,
+      slug: "alpha-renamed",
+      firstPublishedAt: "2026-07-10",
+    };
+    expect(() => parseContentGraph(changedSlug, { publicationHistory })).toThrow(/cannot change published slug "alpha"/);
+
+    const changedDate = cloneGraph();
+    changedDate.tools[0] = {
+      ...changedDate.tools[0]!,
+      fixture: false,
+      firstPublishedAt: "2026-07-11",
+    };
+    expect(() => parseContentGraph(changedDate, { publicationHistory })).toThrow(/cannot change immutable firstPublishedAt/);
+
+    const changedId = cloneGraph();
+    changedId.tools[0] = {
+      ...changedId.tools[0]!,
+      fixture: false,
+      id: "tool-alpha-renamed",
+      firstPublishedAt: "2026-07-10",
+    };
+    changedId.candidates[0]!.toolId = "tool-alpha-renamed";
+    changedId.offers[0]!.toolId = "tool-alpha-renamed";
+    expect(() => parseContentGraph(changedId, { publicationHistory })).toThrow(/published tool "tool-alpha" must remain present/);
+  });
+
+  it("keeps the checked-in publication ledger append-only relative to main", async () => {
+    const previous = await readBasePublicationHistory();
+    const current = await readPublicationHistory();
+
+    expect(validatePublicationHistoryEvolution(previous, current)).toEqual([]);
+    expect(
+      validatePublicationHistoryEvolution(
+        [
+          {
+            recordType: "tool",
+            id: "published-tool",
+            slug: "published-tool",
+            firstPublishedAt: "2026-07-10",
+          },
+        ],
+        [
+          {
+            recordType: "tool",
+            id: "published-tool",
+            slug: "renamed-tool",
+            firstPublishedAt: "2026-07-10",
+          },
+        ],
+      ),
+    ).toEqual([
+      expect.objectContaining({ message: 'cannot change published slug "published-tool"' }),
+    ]);
+  });
+
   it("rejects missing references and identifies the record plus actionable field", () => {
     const graph = cloneGraph();
     graph.candidates[0]!.toolId = "tool-missing";
@@ -316,6 +422,46 @@ describe("authoritative content schema", () => {
     expect(() => parseContentGraph(mixedProvenance)).toThrow(/non-fixture Scenario cannot reference fixture Candidate/i);
   });
 
+  it("closes fixture Source and replacement escape paths", () => {
+    const sourceEscape = cloneGraph();
+    sourceEscape.scenarios[0]!.fixture = false;
+    sourceEscape.scenarios[0]!.status = "draft";
+    sourceEscape.candidates[0]!.fixture = false;
+    sourceEscape.tools[0]!.fixture = false;
+    sourceEscape.candidates[0]!.claimBindings["commercial-use"] = {
+      subjectType: "tool",
+      claimKey: "commercial-use",
+    };
+    sourceEscape.sources[0]!.subjectType = "tool";
+    sourceEscape.sources[0]!.subjectId = "tool-alpha";
+    expect(() => parseContentGraph(sourceEscape)).toThrow(/Source and subject must have matching fixture provenance/);
+
+    const replacementEscape = cloneGraph();
+    replacementEscape.scenarios[0] = {
+      ...replacementEscape.scenarios[0]!,
+      fixture: false,
+      status: "retired",
+      firstPublishedAt: "2026-07-10",
+      replacementSlug: "meeting-workflows",
+    };
+    replacementEscape.candidates[0]!.fixture = false;
+    replacementEscape.tools[0]!.fixture = false;
+    replacementEscape.sources[0]!.fixture = false;
+    replacementEscape.sources[1]!.fixture = false;
+    expect(() =>
+      parseContentGraph(replacementEscape, {
+        publicationHistory: [
+          {
+            recordType: "scenario",
+            id: "scenario-writing",
+            slug: "writing-workflows",
+            firstPublishedAt: "2026-07-10",
+          },
+        ],
+      }),
+    ).toThrow(/replacement must have matching fixture provenance/);
+  });
+
   it("validates observed values and units against their Scenario dimension", () => {
     const wrongValue = cloneGraph();
     wrongValue.sources.find((source) => source.id === "source-meetings-retention")!.observedValue = "thirty";
@@ -331,6 +477,53 @@ describe("authoritative content schema", () => {
     graph.sources[0]!.claimKey = "unbound-claim";
 
     expect(() => parseContentGraph(graph)).toThrow(/claim does not resolve through any Scenario Candidate binding/);
+  });
+
+  it("requires Offer Source claims and values to resolve to Offer fields", () => {
+    const graph = cloneGraph();
+    graph.offers[0]!.evidenceIds = ["source-offer-alpha"];
+    graph.sources.push({
+      fixture: true,
+      id: "source-offer-alpha",
+      subjectType: "offer",
+      subjectId: "offer-alpha",
+      claimKey: "discount",
+      sourceType: "official_pricing",
+      sourceUrl: "https://offers.example/alpha/terms",
+      observedValue: "20-percent",
+      scope: { region: "global" },
+      lastCheckedAt: "2026-07-16",
+    });
+
+    expect(() => parseContentGraph(graph)).toThrow(/claimKey must resolve to status, terms, or region/);
+
+    graph.sources.at(-1)!.claimKey = "status";
+    graph.sources.at(-1)!.observedValue = "verified_deal";
+    expect(() => parseContentGraph(graph)).toThrow(/must equal the Offer status value "research_only"/);
+
+    graph.sources.at(-1)!.observedValue = "research_only";
+    expect(parseContentGraph(graph).offers[0]?.id).toBe("offer-alpha");
+  });
+
+  it("formats multiple validation failures in byte-stable order", () => {
+    const graph = cloneGraph();
+    graph.candidates[0]!.toolId = "tool-missing";
+    graph.sources[0]!.claimKey = "unbound-claim";
+
+    const capture = () => {
+      try {
+        parseContentGraph(graph);
+      } catch (error) {
+        return (error as Error).message;
+      }
+      throw new Error("expected validation failure");
+    };
+    const first = capture();
+    const second = capture();
+    const details = first.split("\n").slice(1);
+
+    expect(first).toBe(second);
+    expect(details).toEqual([...details].sort());
   });
 
   it("keeps Offer fields structurally outside Scenario Candidate eligibility", () => {
