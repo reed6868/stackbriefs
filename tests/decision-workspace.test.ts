@@ -113,6 +113,23 @@ describe("static Decision workspace", () => {
     expect(JSON.stringify(scenarioData)).not.toMatch(/affiliate|offer/i);
   });
 
+  it("renders shortlist controls and a hidden Scenario-scoped dock for enhancement", async () => {
+    const html = await render(writing);
+
+    expect(html.match(/data-shortlist-toggle(?:\s|>)/g)).toHaveLength(4);
+    expect(html.match(/data-shortlist-item=/g)).toHaveLength(2);
+    expect(html).toContain('data-shortlist-dock hidden');
+    expect(html).toContain('data-shortlist-count aria-live="polite"');
+    expect(html).toMatch(/data-compare-shortlist[^>]*disabled/);
+    expect(html).toContain("Choose at least two Tools to compare.");
+    expect(html).toContain('id="shortlist-limit-reason"');
+    expect(html).toContain("Shortlist is full. Remove a Tool before adding another.");
+    expect(html).toContain('data-shortlist-message aria-live="polite" hidden');
+    expect(html).toContain('data-tool-slug="alpha-writer"');
+    expect(html).toContain('data-tool-slug="bravo-draft"');
+    expect(html).not.toMatch(/localStorage|sessionStorage|cookie/i);
+  });
+
   it("renders match, no-match, and unknown labels with ordered explanations", async () => {
     const writingHtml = await render(writing, [
       condition("collaboration-mode", "shared-workspace"),

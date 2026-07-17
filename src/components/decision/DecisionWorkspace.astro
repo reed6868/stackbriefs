@@ -6,6 +6,7 @@ import CriteriaPanel from "./CriteriaPanel.astro";
 import ExcludedCandidateList from "./ExcludedCandidateList.astro";
 import ResultSummary from "./ResultSummary.astro";
 import ScenarioHeader from "./ScenarioHeader.astro";
+import ShortlistDock from "./ShortlistDock.astro";
 import ZeroResults from "./ZeroResults.astro";
 import FilterDialog from "./FilterDialog.astro";
 
@@ -48,6 +49,7 @@ const serializedScenario = encodeURIComponent(JSON.stringify(scenario));
     </div>
   </div>
   <FilterDialog scenario={scenario} conditions={evaluation.appliedConditions} />
+  <ShortlistDock scenario={scenario} />
 </article>
 
 <script>

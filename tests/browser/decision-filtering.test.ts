@@ -96,7 +96,7 @@ test("browser expiry downgrades evidence before required filtering", async ({ pa
 test("invalid initial state normalizes once and restores controls", async ({ page }) => {
   const initialHistoryLength = await page.evaluate(() => history.length);
   await page.goto(
-    `${writingPath}?r=missing:true&r=export-formats:pdf&r=export-formats:docx&p=collaboration-mode:shared-workspace&shortlist=alpha-writer,missing,alpha-writer#comparison`,
+    `${writingPath}?r=missing:true&r=export-formats:pdf&r=export-formats:docx&p=collaboration-mode:shared-workspace&shortlist=alpha-writer,delta-notes,missing,alpha-writer#comparison`,
   );
 
   await expect(page).toHaveURL(
@@ -109,6 +109,11 @@ test("invalid initial state normalizes once and restores controls", async ({ pag
   await expect(filters.getByLabel("Use Collaboration mode as")).toHaveValue("optional");
   await expect(filters.getByLabel("Collaboration mode value")).toHaveValue("shared-workspace");
   await expect(page.locator("#result-summary").getByRole("heading", { level: 2 })).toHaveText("1 tool matches");
+  const dock = page.locator("[data-shortlist-dock]");
+  await expect(dock).toBeVisible();
+  await expect(dock.locator('[data-shortlist-item="alpha-writer"]')).toBeVisible();
+  await expect(dock.locator('[data-shortlist-item="bravo-draft"]')).toBeHidden();
+  await expect(dock.locator("[data-shortlist-count]")).toHaveText("1 tool shortlisted");
 });
 
 test("mobile edits stage until Apply and History restores applied snapshots", async ({ page }, testInfo) => {

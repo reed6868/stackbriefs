@@ -8,6 +8,11 @@ import { evaluateDecision } from "../domain/decision";
 import { downgradeScenarioEvidenceForBrowser } from "../domain/evidence";
 import type { DomainCandidate, DomainScenario } from "../domain/model";
 import {
+  addShortlistItem,
+  projectShortlist,
+  removeShortlistItem,
+} from "../domain/shortlist";
+import {
   decisionCanonicalPath,
   normalizeUrlState,
   parseDecisionConditionValue,
@@ -248,6 +253,7 @@ function mountDecisionController(root: HTMLElement) {
     failed = true;
     controllerEvents.abort();
     document.documentElement.classList.remove("filter-open");
+    document.documentElement.classList.remove("shortlist-open");
     root.innerHTML = staticMarkup;
     delete root.dataset.decisionEnhanced;
     if (`${location.pathname}${location.search}${location.hash}` !== staticUrl) {
@@ -283,8 +289,21 @@ function mountDecisionController(root: HTMLElement) {
     const mobileClear = requiredElement<HTMLButtonElement>(mobileForm, "[data-clear-all]");
     const resultSummary = requiredElement<HTMLElement>(root, "[data-result-summary]");
     const zeroResults = requiredElement<HTMLElement>(root, "[data-zero-results]");
+    const shortlistDock = requiredElement<HTMLElement>(root, "[data-shortlist-dock]");
+    const shortlistCount = requiredElement<HTMLElement>(shortlistDock, "[data-shortlist-count]");
+    const shortlistList = requiredElement<HTMLUListElement>(shortlistDock, "[data-shortlist-items]");
+    const compareShortlist = requiredElement<HTMLButtonElement>(shortlistDock, "[data-compare-shortlist]");
+    const compareReason = requiredElement<HTMLElement>(shortlistDock, "[data-compare-reason]");
+    const shortlistLimit = requiredElement<HTMLElement>(shortlistDock, "[data-shortlist-limit]");
+    const shortlistMessage = requiredElement<HTMLElement>(shortlistDock, "[data-shortlist-message]");
+    const shortlistItems = new Map(
+      [...shortlistDock.querySelectorAll<HTMLElement>("[data-shortlist-item]")]
+        .map((item) => [item.dataset.shortlistItem ?? "", item] as const),
+    );
+    const shortlistToggles = [...root.querySelectorAll<HTMLButtonElement>("[data-shortlist-toggle]")];
     const forms = [desktopForm, mobileForm];
     let state: UrlState;
+    let evaluation: DecisionEvaluation;
     let dialogFocusTarget: HTMLElement = trigger;
 
     const canonicalUrl = (nextState: UrlState) => {
@@ -304,6 +323,62 @@ function mountDecisionController(root: HTMLElement) {
       history[`${mode}State`](null, "", target);
     };
 
+    const syncShortlist = () => {
+      const projection = projectShortlist(scenario, evaluation, state.shortlist);
+      const selected = new Set(projection.items.map((item) => item.toolSlug));
+      shortlistItems.forEach((item) => { item.hidden = true; });
+      projection.items.forEach((item) => {
+        const row = shortlistItems.get(item.toolSlug);
+        if (!row) throw new Error(`Decision controller requires shortlist row for ${item.toolSlug}`);
+        row.hidden = false;
+        row.dataset.eligibility = item.eligibility;
+        requiredElement<HTMLElement>(row, "[data-shortlist-eligibility]").textContent =
+          item.eligibilityLabel;
+        shortlistList.append(row);
+      });
+
+      shortlistToggles.forEach((button) => {
+        const toolSlug = button.dataset.toolSlug ?? "";
+        const toolName = button.dataset.toolName ?? "Tool";
+        const isSelected = selected.has(toolSlug);
+        button.hidden = false;
+        button.setAttribute("aria-pressed", String(isSelected));
+        button.textContent = `${isSelected ? "Remove" : "Add"} ${toolName} ${isSelected ? "from" : "to"} shortlist`;
+        if (projection.atLimit && !isSelected) {
+          button.setAttribute("aria-disabled", "true");
+          button.setAttribute("aria-describedby", "shortlist-limit-reason");
+        } else {
+          button.removeAttribute("aria-disabled");
+          button.removeAttribute("aria-describedby");
+        }
+        const surface = button.closest<HTMLElement>("[data-candidate-card], [data-excluded-candidate]");
+        if (surface) surface.dataset.shortlisted = String(isSelected);
+      });
+
+      shortlistCount.textContent = projection.countLabel;
+      compareShortlist.disabled = !projection.canCompare;
+      compareReason.hidden = projection.canCompare;
+      compareReason.textContent = projection.compareReason ?? "";
+      if (projection.canCompare) {
+        compareShortlist.removeAttribute("aria-describedby");
+      } else {
+        compareShortlist.setAttribute("aria-describedby", "shortlist-compare-reason");
+      }
+      shortlistLimit.hidden = !projection.atLimit;
+      shortlistLimit.textContent = projection.limitReason ?? "";
+      shortlistMessage.hidden = true;
+      shortlistMessage.textContent = "";
+      shortlistDock.hidden = projection.items.length === 0;
+      root.dataset.hasShortlist = String(projection.items.length > 0);
+      document.documentElement.classList.toggle("shortlist-open", projection.items.length > 0);
+    };
+
+    const renderDecision = () => {
+      evaluation = evaluateDecision(scenario, state.conditions);
+      renderEvaluation(root, scenario, evaluation);
+      syncShortlist();
+    };
+
     const applyConditions = (
       conditions: readonly DecisionCondition[],
       historyMode: HistoryMode,
@@ -312,16 +387,37 @@ function mountDecisionController(root: HTMLElement) {
       state = normalizeUrlState(scenario, { ...state, conditions });
       writeHistory(historyMode);
       syncForms();
-      renderEvaluation(root, scenario, evaluateDecision(scenario, state.conditions));
+      renderDecision();
       if (focusSummary) focusResultSummary(resultSummary);
+    };
+
+    const applyShortlist = (shortlist: readonly string[]) => {
+      state = normalizeUrlState(scenario, { ...state, shortlist });
+      writeHistory("replace");
+      syncShortlist();
     };
 
     const restoreLocation = (focusSummary: boolean) => {
       state = parseUrlState(scenario, { search: location.search, hash: location.hash });
       writeHistory("replace");
       syncForms();
-      renderEvaluation(root, scenario, evaluateDecision(scenario, state.conditions));
+      renderDecision();
       if (focusSummary) focusResultSummary(resultSummary);
+    };
+
+    const keepFocusedControlVisible = () => {
+      if (shortlistDock.hidden) return;
+      const focused = document.activeElement;
+      if (!(focused instanceof HTMLElement) || !root.contains(focused)) return;
+      if (focused.getBoundingClientRect().bottom > shortlistDock.getBoundingClientRect().top) {
+        focused.scrollIntoView({ block: "center", behavior: "auto" });
+      }
+    };
+
+    const focusVisibleShortlistToggle = (toolSlug: string) => {
+      const toggle = shortlistToggles.find((button) =>
+        button.dataset.toolSlug === toolSlug && button.getClientRects().length > 0);
+      (toggle ?? resultSummary).focus();
     };
 
     const closeDialog = (focusTarget: HTMLElement = trigger) => {
@@ -382,6 +478,41 @@ function mountDecisionController(root: HTMLElement) {
           ? { ...condition, mode: "optional" }
           : condition);
       applyConditions(conditions, "push", true);
+    }), { signal: controllerEvents.signal });
+
+    root.addEventListener("click", safely((event) => {
+      const target = event.target as Element;
+      const toggle = target.closest<HTMLButtonElement>("[data-shortlist-toggle]");
+      if (toggle?.dataset.toolSlug) {
+        const toolSlug = toggle.dataset.toolSlug;
+        if (state.shortlist.includes(toolSlug)) {
+          applyShortlist(removeShortlistItem(state.shortlist, toolSlug));
+        } else {
+          const result = addShortlistItem(state.shortlist, toolSlug);
+          if (result.kind === "rejected") {
+            shortlistMessage.textContent = result.reason;
+            shortlistMessage.hidden = false;
+            keepFocusedControlVisible();
+            return;
+          }
+          applyShortlist(result.shortlist);
+        }
+        keepFocusedControlVisible();
+        return;
+      }
+
+      const remove = target.closest<HTMLButtonElement>("[data-shortlist-remove]");
+      if (!remove?.dataset.toolSlug) return;
+      const toolSlug = remove.dataset.toolSlug;
+      const index = state.shortlist.indexOf(toolSlug);
+      const focusSlug = state.shortlist[index + 1] ?? state.shortlist[index - 1];
+      applyShortlist(removeShortlistItem(state.shortlist, toolSlug));
+      if (focusSlug) {
+        requiredElement<HTMLButtonElement>(shortlistItems.get(focusSlug)!, "[data-shortlist-remove]").focus();
+      } else {
+        focusVisibleShortlistToggle(toolSlug);
+      }
+      keepFocusedControlVisible();
     }), { signal: controllerEvents.signal });
 
     matchMedia("(min-width: 48rem)").addEventListener("change", safely((event) => {

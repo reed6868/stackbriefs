@@ -1,0 +1,59 @@
+---
+import type { DomainScenario } from "../../domain/model";
+import { COMPARE_DISABLED_REASON, SHORTLIST_LIMIT_REASON } from "../../domain/shortlist";
+
+interface Props {
+  scenario: DomainScenario;
+}
+
+const { scenario } = Astro.props;
+---
+
+<aside class="shortlist-dock" aria-labelledby="shortlist-title" data-shortlist-dock hidden>
+  <div class="shortlist-dock__inner">
+    <div class="shortlist-dock__heading">
+      <div>
+        <p class="fixture-label">Shortlist</p>
+        <h2 id="shortlist-title">Tools to compare</h2>
+      </div>
+      <p data-shortlist-count aria-live="polite">0 tools shortlisted</p>
+    </div>
+    <ul class="shortlist-dock__items" data-shortlist-items>
+      {scenario.candidates.map((candidate) => (
+        <li data-shortlist-item={candidate.tool.slug} hidden>
+          <div>
+            <strong>{candidate.tool.name}</strong>
+            <span data-shortlist-eligibility>Matches current filters</span>
+          </div>
+          <button
+            type="button"
+            class="icon-button"
+            aria-label={`Remove ${candidate.tool.name} from shortlist`}
+            data-shortlist-remove
+            data-tool-slug={candidate.tool.slug}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+    <div class="shortlist-dock__actions">
+      <button
+        type="button"
+        class="primary-button"
+        data-compare-shortlist
+        aria-describedby="shortlist-compare-reason"
+        disabled
+      >
+        Compare shortlisted Tools
+      </button>
+      <p id="shortlist-compare-reason" data-compare-reason>
+        {COMPARE_DISABLED_REASON}
+      </p>
+    </div>
+    <p id="shortlist-limit-reason" class="shortlist-dock__notice" data-shortlist-limit hidden>
+      {SHORTLIST_LIMIT_REASON}
+    </p>
+    <p class="shortlist-dock__notice" data-shortlist-message aria-live="polite" hidden></p>
+  </div>
+</aside>

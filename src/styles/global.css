@@ -88,6 +88,14 @@ html.menu-open {
   overflow: hidden;
 }
 
+html.shortlist-open {
+  scroll-padding-bottom: calc(15rem + env(safe-area-inset-bottom));
+}
+
+html.shortlist-open body {
+  padding-bottom: calc(15rem + env(safe-area-inset-bottom));
+}
+
 :where(button, input, select, textarea) {
   font: inherit;
 }
@@ -738,6 +746,13 @@ p {
   color: var(--color-surface);
 }
 
+.primary-button:disabled {
+  border-color: var(--color-border);
+  background: var(--color-border);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
 [data-desktop-filter-panel] {
   display: none;
 }
@@ -921,6 +936,115 @@ html.filter-open {
 .excluded-candidate__heading a {
   align-self: start;
   font-weight: 650;
+}
+
+.candidate-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.shortlist-toggle {
+  min-height: 2.75rem;
+}
+
+.shortlist-toggle[aria-disabled="true"] {
+  opacity: 0.7;
+}
+
+:where(.candidate-card, .excluded-candidate)[data-shortlisted="true"] {
+  box-shadow: inset 3px 0 0 var(--color-brand);
+}
+
+.shortlist-dock {
+  position: fixed;
+  z-index: var(--layer-dock);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: var(--space-3) var(--page-gutter);
+  padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+  border-top: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 -0.75rem 2rem rgb(23 26 33 / 0.12);
+}
+
+.shortlist-dock__inner {
+  display: grid;
+  width: min(100%, var(--container-wide));
+  margin-inline: auto;
+  gap: var(--space-3);
+}
+
+.shortlist-dock__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.shortlist-dock__heading h2 {
+  margin: 0;
+  font-size: var(--text-heading-sm);
+}
+
+.shortlist-dock__heading p:last-child {
+  margin: 0;
+  font-size: var(--text-meta);
+}
+
+.shortlist-dock__items {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0 0 var(--space-1);
+  overflow-x: auto;
+  list-style: none;
+}
+
+.shortlist-dock__items li {
+  display: grid;
+  min-width: min(14rem, calc(100vw - var(--page-gutter) * 2));
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-canvas);
+}
+
+.shortlist-dock__items strong,
+.shortlist-dock__items span {
+  display: block;
+}
+
+.shortlist-dock__items span {
+  color: var(--color-muted);
+  font-size: var(--text-meta);
+}
+
+.shortlist-dock__items li[data-eligibility="no_match"] span,
+.shortlist-dock__items li[data-eligibility="unknown"] span {
+  color: var(--color-warning);
+}
+
+.shortlist-dock__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.shortlist-dock__actions p,
+.shortlist-dock__notice {
+  margin: 0;
+  font-size: var(--text-meta);
+}
+
+.shortlist-dock__notice {
+  color: var(--color-warning);
 }
 
 .candidate-card__state,
@@ -1147,6 +1271,36 @@ html.filter-open {
 @media (min-width: 48rem) {
   :root {
     --page-gutter: 1.5rem;
+  }
+
+  html.shortlist-open {
+    scroll-padding-bottom: calc(9rem + env(safe-area-inset-bottom));
+  }
+
+  html.shortlist-open body {
+    padding-bottom: calc(9rem + env(safe-area-inset-bottom));
+  }
+
+  .shortlist-dock__inner {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .shortlist-dock__heading {
+    display: block;
+  }
+
+  .shortlist-dock__heading p:last-child {
+    margin-top: var(--space-1);
+  }
+
+  .shortlist-dock__actions {
+    display: grid;
+    justify-items: end;
+  }
+
+  .shortlist-dock__notice {
+    grid-column: 1 / -1;
   }
 
   .desktop-nav {

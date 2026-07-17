@@ -5,6 +5,7 @@ import {
   type DecisionConditionValue,
 } from "./decision";
 import type { DomainScenario } from "./model";
+import { SHORTLIST_LIMIT } from "./shortlist";
 
 export interface UrlState {
   conditions: readonly DecisionCondition[];
@@ -63,7 +64,7 @@ function normalizeShortlist(scenario: DomainScenario, shortlist: readonly string
     if (!validSlugs.has(slug) || seen.has(slug)) continue;
     seen.add(slug);
     normalized.push(slug);
-    if (normalized.length === 4) break;
+    if (normalized.length === SHORTLIST_LIMIT) break;
   }
   return normalized;
 }
