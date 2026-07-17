@@ -1,5 +1,4 @@
 ---
-import stackbriefsMark from "../assets/stackbriefs-mark.svg";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
@@ -7,21 +6,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   title="StackBriefs"
   description="Scenario-first AI tool decision support."
 >
-  <main class="site-container">
-    <div class="brand-lockup">
-      <img
-        class="brand-mark"
-        src={stackbriefsMark.src}
-        width="32"
-        height="32"
-        alt=""
-      />
-      <span>StackBriefs</span>
-    </div>
-    <h1>Start with a use case. Narrow the options. Choose with confidence.</h1>
+  <section id="scenarios" aria-labelledby="home-title">
+    <h1 id="home-title">Start with a use case. Narrow the options. Choose with confidence.</h1>
     <p>
       The implementation harness is ready. Product routes and decision logic
       will be added through reviewed development tasks.
     </p>
-  </main>
+  </section>
 </BaseLayout>

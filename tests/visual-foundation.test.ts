@@ -97,6 +97,7 @@ describe("visual foundation", () => {
     expect(css).toMatch(/@media\s*\(min-width:\s*48rem\)[\s\S]*--page-gutter:\s*1\.5rem/);
     expect(css).toMatch(/@media\s*\(min-width:\s*75rem\)[\s\S]*--page-gutter:\s*2rem/);
     expect(css).toMatch(/:focus-visible[\s\S]*outline:\s*3px solid var\(--color-brand\)/);
+    expect(css).toMatch(/:where\(#main-content, #scenarios\)\s*{[\s\S]*scroll-margin-top:\s*6rem/);
     expect(css).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)/);
     expect(css).toMatch(/\.state-label\[data-state="success"\]::before\s*{[\s\S]*content:\s*"✓"/);
     expect(css).toMatch(/\.state-label\[data-state="warning"\]::before\s*{[\s\S]*content:\s*"!"/);
@@ -106,9 +107,9 @@ describe("visual foundation", () => {
   });
 
   it("renders local identity and self-hosted font assets from the base layout", async () => {
-    const [layout, page, css, manifest, font, monoFont, logo, favicon] = await Promise.all([
+    const [layout, header, css, manifest, font, monoFont, logo, favicon] = await Promise.all([
       readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8"),
-      readFile(new URL("../src/pages/index.astro", import.meta.url), "utf8"),
+      readFile(new URL("../src/components/SiteHeader.astro", import.meta.url), "utf8"),
       readFile(new URL("../src/styles/global.css", import.meta.url), "utf8"),
       readFile(new URL("../public/site.webmanifest", import.meta.url), "utf8"),
       readFile(new URL("../public/fonts/geist-latin.woff2", import.meta.url)),
@@ -128,8 +129,8 @@ describe("visual foundation", () => {
     expect(layout).toContain('href="/site.webmanifest"');
     expect(layout).toContain('href="/fonts/geist-latin.woff2"');
     expect(layout).toContain('name="theme-color" content="#F7F8FA"');
-    expect(page).toContain('class="site-container"');
-    expect(page).toContain("stackbriefsMark.src");
+    expect(layout).toContain('"site-container"');
+    expect(header).toContain("stackbriefsMark.src");
     expect(css).toContain('src: url("/fonts/geist-latin.woff2") format("woff2");');
     expect(css).toContain('src: url("/fonts/geist-mono-latin.woff2") format("woff2");');
     expect(css).toContain("font-display: swap;");
