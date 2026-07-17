@@ -1,0 +1,48 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+interface Props {
+  tool: {
+    name: string;
+    summary: string;
+  };
+}
+
+export function getStaticPaths() {
+  return [
+    {
+      params: { slug: "fixture-tool" },
+      props: {
+        tool: {
+          name: "Fixture Tool",
+          summary: "A non-production identity record used only to verify the Tool route and shared shell.",
+        },
+      },
+    },
+  ];
+}
+
+const { tool } = Astro.props;
+const scenarioTitle = "Fixture writing assistant decision";
+---
+
+<BaseLayout
+  title={`${tool.name} | StackBriefs`}
+  description="Non-production fixture for the StackBriefs Tool route."
+  breadcrumbs={[
+    { label: "Home", href: "/" },
+    { label: scenarioTitle, href: "/decision/fixture-scenario" },
+    { label: tool.name },
+  ]}
+>
+  <article data-fixture="true">
+    <p class="fixture-label">Fixture preview</p>
+    <h1>{tool.name}</h1>
+    <p>{tool.summary}</p>
+    <h2>Route skeleton</h2>
+    <p>
+      Evidence, limitations, hands-on status, and outbound-link separation are intentionally deferred. This page does not make a fit claim or name a winner.
+    </p>
+    <p class="route-actions"><a href="/decision/fixture-scenario">Return to the fixture Scenario</a></p>
+  </article>
+</BaseLayout>

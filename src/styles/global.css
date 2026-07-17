@@ -359,6 +359,43 @@ p {
   margin: 0 !important;
 }
 
+.fixture-label {
+  margin: 0 0 var(--space-2);
+  color: var(--color-brand);
+  font-size: var(--text-meta);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:where(article, .status-page) h2 {
+  margin-top: var(--space-12);
+}
+
+.route-actions,
+.status-page__recovery {
+  margin-top: var(--space-8);
+}
+
+.status-page {
+  max-width: var(--container-reading);
+}
+
+.status-page__recovery ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.status-page__recovery a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+}
+
 .state-label {
   display: inline-flex;
   align-items: baseline;

@@ -1,0 +1,98 @@
+import { readFile } from "node:fs/promises";
+
+import { experimental_AstroContainer as AstroContainer } from "astro/container";
+import { beforeAll, describe, expect, it } from "vitest";
+
+import StatusPage from "../src/components/StatusPage.astro";
+import BaseLayout from "../src/layouts/BaseLayout.astro";
+
+const routePaths = [
+  "../src/pages/index.astro",
+  "../src/pages/decision/[scenario].astro",
+  "../src/pages/tool/[slug].astro",
+  "../src/pages/methodology.astro",
+  "../src/pages/affiliate-disclosure.astro",
+  "../src/pages/404.astro",
+] as const;
+
+const fixtureRoutePaths = routePaths.slice(0, -1);
+
+describe("P0 route skeleton", () => {
+  let container: Awaited<ReturnType<typeof AstroContainer.create>>;
+
+  beforeAll(async () => {
+    container = await AstroContainer.create();
+  });
+
+  it("defines every required route with one H1 and the shared layout", async () => {
+    const routes = await Promise.all(
+      routePaths.map(async (path) => [path, await readFile(new URL(path, import.meta.url), "utf8")] as const),
+    );
+
+    for (const [path, source] of routes) {
+      expect(source, `${path} uses BaseLayout`).toContain("<BaseLayout");
+
+      if (path.endsWith("404.astro")) {
+        expect(source).toContain("<StatusPage");
+      } else {
+        expect(source.match(/<h1(?:\s|>)/g), `${path} has one H1`).toHaveLength(1);
+      }
+    }
+  });
+
+  it("marks non-production route placeholders as fixtures", async () => {
+    const routes = await Promise.all(
+      fixtureRoutePaths.map((path) => readFile(new URL(path, import.meta.url), "utf8")),
+    );
+
+    for (const source of routes) {
+      expect(source).toContain('data-fixture="true"');
+      expect(source).toContain("Fixture preview");
+    }
+  });
+
+  it("configures the production site, slash policy, and permanent Cloudflare redirect", async () => {
+    const [config, redirects] = await Promise.all([
+      readFile(new URL("../astro.config.mjs", import.meta.url), "utf8"),
+      readFile(new URL("../public/_redirects", import.meta.url), "utf8"),
+    ]);
+
+    expect(config).toContain('site: "https://stackbriefs.pages.dev"');
+    expect(config).toContain('trailingSlash: "never"');
+    expect(redirects.trim()).toBe("/decision /#scenarios 301");
+  });
+
+  it("renders noindex metadata for status layouts", async () => {
+    const html = await container.renderToString(BaseLayout, {
+      props: {
+        title: "Unavailable | StackBriefs",
+        description: "Unavailable page",
+        noindex: true,
+      },
+      request: new Request("https://stackbriefs.test/missing"),
+      slots: { default: "<h1>Unavailable</h1>" },
+    });
+
+    expect(html).toContain('<meta name="robots" content="noindex, nofollow"');
+  });
+
+  it.each(["unavailable", "blocked", "retired"] as const)(
+    "renders truthful %s recovery content without decision controls",
+    async (status) => {
+      const html = await container.renderToString(StatusPage, {
+        props: {
+          status,
+          title: status === "retired" ? "This page has retired" : "This page is unavailable",
+          message: "This fixture status explains what happened without presenting current claims.",
+        },
+      });
+
+      expect(html).toContain(`data-status="${status}"`);
+      expect(html.match(/<h1(?:\s|>)/g)).toHaveLength(1);
+      expect(html).toContain('href="/"');
+      expect(html).toContain('href="/#scenarios"');
+      expect(html).toContain('href="/methodology"');
+      expect(html.toLowerCase()).not.toMatch(/filter|compare|shortlist|official link/);
+    },
+  );
+});

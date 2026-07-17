@@ -1,0 +1,16 @@
+---
+import StatusPage from "../components/StatusPage.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Page unavailable | StackBriefs"
+  description="The requested StackBriefs page is unavailable."
+  noindex
+>
+  <StatusPage
+    status="unavailable"
+    title="This page is unavailable"
+    message="The address may be invalid or the page may no longer be public. Use a recovery path below to continue."
+  />
+</BaseLayout>

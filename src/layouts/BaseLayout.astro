@@ -10,9 +10,10 @@ interface Props {
   description: string;
   reading?: boolean;
   breadcrumbs?: BreadcrumbItem[];
+  noindex?: boolean;
 }
 
-const { title, description, reading = false, breadcrumbs } = Astro.props;
+const { title, description, reading = false, breadcrumbs, noindex = false } = Astro.props;
 const currentPath = Astro.url.pathname;
 const mainClass = ["page-content", "site-container", reading && "reading-layout"].filter(Boolean).join(" ");
 ---
@@ -23,6 +24,7 @@ const mainClass = ["page-content", "site-container", reading && "reading-layout"
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <meta name="theme-color" content="#F7F8FA" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate icon" href="/favicon.ico" sizes="any" />

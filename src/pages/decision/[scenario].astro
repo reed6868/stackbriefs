@@ -1,0 +1,43 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+interface Props {
+  scenario: {
+    title: string;
+    goal: string;
+  };
+}
+
+export function getStaticPaths() {
+  return [
+    {
+      params: { scenario: "fixture-scenario" },
+      props: {
+        scenario: {
+          title: "Fixture writing assistant decision",
+          goal: "Choose a writing assistant for a small team with explicit constraints.",
+        },
+      },
+    },
+  ];
+}
+
+const { scenario } = Astro.props;
+---
+
+<BaseLayout
+  title={`${scenario.title} | StackBriefs`}
+  description="Non-production fixture for the StackBriefs Decision route."
+  breadcrumbs={[{ label: "Home", href: "/" }, { label: scenario.title }]}
+>
+  <article data-fixture="true">
+    <p class="fixture-label">Fixture preview</p>
+    <h1>{scenario.title}</h1>
+    <p>{scenario.goal}</p>
+    <h2>Route skeleton</h2>
+    <p>
+      This non-production fixture reserves the Scenario boundary, criteria, result, exclusion, and recovery regions. Deterministic decision behavior arrives in later reviewed tasks.
+    </p>
+    <p class="route-actions"><a href="/tool/fixture-tool">View the fixture Tool route</a></p>
+  </article>
+</BaseLayout>
