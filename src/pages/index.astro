@@ -36,6 +36,8 @@ const fixturePreview = scenarios.some((scenario) => scenario.fixture);
 <BaseLayout
   title="StackBriefs — scenario-first AI tool decisions"
   description="Start with a use case, narrow the options, and verify AI-tool trade-offs."
+  canonicalPath="/"
+  structuredData={{ kind: "website" }}
 >
   <header class="home-hero" aria-labelledby="home-title" data-fixture={fixturePreview ? "true" : undefined}>
     <p class="fixture-label">{fixturePreview ? "Fixture preview" : "Decision workspace"}</p>

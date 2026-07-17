@@ -25,6 +25,17 @@ const { route } = Astro.props;
   <BaseLayout
     title={`${route.detail.tool.name} | StackBriefs`}
     description={`${route.detail.tool.summary} Review published Scenario contexts, limitations, hands-on status, and verification steps.`}
+    indexable={route.indexable}
+    canonicalPath={`/tool/${route.detail.tool.slug}`}
+    seoBreadcrumbs={[{ label: "Home", href: "/" }, { label: route.detail.tool.name }]}
+    structuredData={route.structuredData
+      ? {
+          kind: "software-application",
+          name: route.detail.tool.name,
+          description: route.detail.tool.summary,
+          officialUrl: route.detail.tool.officialUrl,
+        }
+      : undefined}
   >
     <ToolDetail detail={route.detail} />
   </BaseLayout>

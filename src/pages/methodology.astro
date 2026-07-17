@@ -11,8 +11,10 @@ const { Content } = await render(page);
 <BaseLayout
   title={`${page.data.title} | StackBriefs`}
   description={page.data.description}
+  canonicalPath="/methodology"
   reading
   breadcrumbs={[{ label: "Home", href: "/" }, { label: "Methodology" }]}
+  structuredData={{ kind: "webpage" }}
 >
   <article class="trusted-content">
     <header class="trusted-content__header">

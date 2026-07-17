@@ -15,11 +15,15 @@ export interface LifecycleStatusRoute {
 export interface PublishedScenarioRoute {
   kind: "published";
   scenario: DomainScenario;
+  indexable: boolean;
+  structuredData: boolean;
 }
 
 export interface PublishedToolRoute {
   kind: "published";
   detail: ToolDetailProjection;
+  indexable: boolean;
+  structuredData: boolean;
 }
 
 export type ScenarioRoute = PublishedScenarioRoute | LifecycleStatusRoute;
@@ -74,12 +78,20 @@ function statusRoute(
 export function projectScenarioRoutePaths(assembly: PublicationAssembly) {
   const publishedSlugs = new Set(assembly.publicInputs.decisionRouteSlugs);
   const statusSlugs = new Set(assembly.publicInputs.statusScenarioSlugs);
+  const structuredDataPaths = new Set(assembly.publicInputs.structuredDataPaths);
 
   return assembly.scenarioOutcomes.flatMap((outcome): ScenarioRoutePath[] => {
     if (outcome.kind === "published" && publishedSlugs.has(outcome.slug)) {
       return [{
         params: { scenario: outcome.slug },
-        props: { route: { kind: "published", scenario: outcome.scenario } satisfies PublishedScenarioRoute },
+        props: {
+          route: {
+            kind: "published",
+            scenario: outcome.scenario,
+            indexable: assembly.publicInputs.indexable,
+            structuredData: structuredDataPaths.has(`/decision/${outcome.slug}`),
+          } satisfies PublishedScenarioRoute,
+        },
       }];
     }
     if ((outcome.kind === "blocked" || outcome.kind === "retired") && statusSlugs.has(outcome.slug)) {
@@ -95,13 +107,21 @@ export function projectScenarioRoutePaths(assembly: PublicationAssembly) {
 export function projectToolRoutePaths(assembly: PublicationAssembly) {
   const exposedSlugs = new Set(assembly.publicInputs.exposedToolSlugs);
   const statusSlugs = new Set(assembly.publicInputs.statusToolSlugs);
+  const structuredDataPaths = new Set(assembly.publicInputs.structuredDataPaths);
 
   return assembly.toolOutcomes.flatMap((outcome): ToolRoutePath[] => {
     if (outcome.kind === "exposed-tool" && exposedSlugs.has(outcome.slug)) {
       const detail = projectToolDetail(assembly, outcome.slug);
       return detail ? [{
         params: { slug: outcome.slug },
-        props: { route: { kind: "published", detail } satisfies PublishedToolRoute },
+        props: {
+          route: {
+            kind: "published",
+            detail,
+            indexable: assembly.publicInputs.indexable,
+            structuredData: structuredDataPaths.has(`/tool/${outcome.slug}`),
+          } satisfies PublishedToolRoute,
+        },
       }] : [];
     }
     if ((outcome.kind === "blocked" || outcome.kind === "retired") && statusSlugs.has(outcome.slug)) {

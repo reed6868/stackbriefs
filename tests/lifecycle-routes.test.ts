@@ -138,6 +138,8 @@ describe("lifecycle route projection", () => {
       .toMatchObject({ kind: "status", status: "blocked", noindex: true });
     expect(scenarioPaths.find((path) => path.params.scenario === "retired-scenario")?.props.route)
       .toMatchObject({ kind: "status", status: "retired", noindex: true });
+    expect(scenarioPaths.find((path) => path.params.scenario === publishedScenario.slug)?.props.route)
+      .toMatchObject({ kind: "published", indexable: false, structuredData: true });
 
     const toolPaths = projectToolRoutePaths(publication);
     expect(toolPaths.map((path) => path.params.slug)).toEqual([
@@ -149,6 +151,8 @@ describe("lifecycle route projection", () => {
       .toMatchObject({ kind: "status", status: "blocked", noindex: true });
     expect(toolPaths.find((path) => path.params.slug === "retired-tool")?.props.route)
       .toMatchObject({ kind: "status", status: "retired", noindex: true });
+    expect(toolPaths.find((path) => path.params.slug === exposedTool.slug)?.props.route)
+      .toMatchObject({ kind: "published", indexable: false, structuredData: true });
 
     expect(projectLifecycleRedirects(publication)).toEqual([
       { from: "/decision/replaced-scenario", to: `/decision/${publishedScenario.slug}`, statusCode: 301 },
