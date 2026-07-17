@@ -1,6 +1,8 @@
 ---
 import { assembleContentCollections } from "../../content/assemble";
 import { publicationOptionsFromEnvironment } from "../../content/build-context";
+import DecisionWorkspace from "../../components/decision/DecisionWorkspace.astro";
+import { evaluateDecision } from "../../domain/decision";
 import type { DomainScenario } from "../../domain/model";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
@@ -18,21 +20,14 @@ export async function getStaticPaths() {
 }
 
 const { scenario } = Astro.props;
+const evaluation = evaluateDecision(scenario, []);
 ---
 
 <BaseLayout
   title={`${scenario.title} | StackBriefs`}
-  description="Non-production fixture for the StackBriefs Decision route."
+  description={`${scenario.goal} Review Scenario boundaries, decision criteria, evidence, and limitations.`}
   breadcrumbs={[{ label: "Home", href: "/" }, { label: scenario.title }]}
 >
-  <article data-fixture={scenario.fixture ? "true" : undefined}>
-    <p class="fixture-label">{scenario.fixture ? "Fixture preview" : "Published Scenario"}</p>
-    <h1>{scenario.title}</h1>
-    <p>{scenario.goal}</p>
-    <h2>Route skeleton</h2>
-    <p>
-      This non-production fixture reserves the Scenario boundary, criteria, result, exclusion, and recovery regions. Deterministic decision behavior arrives in later reviewed tasks.
-    </p>
-    <p class="route-actions"><a href="/#scenarios">Browse fixture Scenarios</a></p>
-  </article>
+  <DecisionWorkspace scenario={scenario} evaluation={evaluation} />
+  <p class="decision-return"><a href="/#scenarios">Browse all Scenarios</a></p>
 </BaseLayout>

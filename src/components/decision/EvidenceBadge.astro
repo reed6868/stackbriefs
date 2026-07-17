@@ -1,0 +1,20 @@
+---
+import type { EvidenceState } from "../../domain/evidence-types";
+
+interface Props {
+  state: EvidenceState;
+}
+
+const labels: Record<EvidenceState, string> = {
+  verified_fact: "Verified fact",
+  editorial_assessment: "Editorial assessment",
+  not_verified: "Not verified",
+  needs_recheck: "Needs recheck",
+  not_applicable: "Not applicable",
+  conflicting: "Conflicting",
+};
+
+const { state } = Astro.props;
+---
+
+<span class="evidence-badge" data-evidence-state={state}>{labels[state]}</span>

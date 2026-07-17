@@ -1,0 +1,27 @@
+---
+import type { DecisionEvaluation } from "../../domain/decision";
+
+interface Props {
+  evaluation: DecisionEvaluation;
+}
+
+const { evaluation } = Astro.props;
+const requiredCount = evaluation.appliedConditions.filter((condition) => condition.mode === "required").length;
+const optionalCount = evaluation.appliedConditions.length - requiredCount;
+---
+
+<header id="result-summary" class="result-summary" aria-live="polite">
+  <p class="fixture-label">Results</p>
+  <h2>
+    {evaluation.appliedConditions.length === 0
+      ? `${evaluation.matches.length} ${evaluation.matches.length === 1 ? "tool" : "tools"} in this Scenario`
+      : evaluation.matches.length === 0
+      ? "No tools match every required condition"
+      : `${evaluation.matches.length} ${evaluation.matches.length === 1 ? "tool matches" : "tools match"}`}
+  </h2>
+  <p>
+    {evaluation.appliedConditions.length === 0
+      ? "No requirements are applied yet. Review each Tool's evidence and limitation."
+      : `${requiredCount} required ${requiredCount === 1 ? "condition" : "conditions"} and ${optionalCount} optional ${optionalCount === 1 ? "preference" : "preferences"} applied.`}
+  </p>
+</header>

@@ -1,0 +1,42 @@
+---
+import type { DomainCandidate, DomainScenario } from "../../domain/model";
+import EvidenceBadge from "./EvidenceBadge.astro";
+import { formatDimensionValue, relevantCheckDate } from "./presentation";
+
+interface Props {
+  scenario: DomainScenario;
+  candidate: DomainCandidate;
+}
+
+const { scenario, candidate } = Astro.props;
+const claims = new Map(candidate.claims.map((claim) => [claim.dimensionId, claim]));
+const rows = [...scenario.dimensions]
+  .sort((left, right) => left.order - right.order)
+  .flatMap((dimension) => {
+    const claim = claims.get(dimension.id);
+    return claim ? [{ dimension, claim }] : [];
+  });
+---
+
+<section class="evidence-summary" aria-label={`Evidence summary for ${candidate.tool.name}`}>
+  <h4>Evidence summary</h4>
+  <dl>
+    {rows.map(({ dimension, claim }) => {
+      const lastCheckedAt = relevantCheckDate(claim);
+      return (
+        <div class="evidence-row">
+          <dt>{dimension.label}</dt>
+          <dd>
+            <span class="evidence-row__value">{formatDimensionValue(dimension, claim.evidence.value)}</span>
+            <EvidenceBadge state={claim.evidence.state} />
+            {lastCheckedAt && (
+              <span class="evidence-row__date">
+                Checked <time datetime={lastCheckedAt}>{lastCheckedAt}</time>
+              </span>
+            )}
+          </dd>
+        </div>
+      );
+    })}
+  </dl>
+</section>
