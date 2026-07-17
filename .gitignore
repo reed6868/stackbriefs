@@ -9,6 +9,7 @@ sub2api2.json
 .playwright-mcp/
 .gstack/
 .claude/settings.local.json
+.worktrees/
 
 # Dependencies, builds, and test output
 node_modules/
