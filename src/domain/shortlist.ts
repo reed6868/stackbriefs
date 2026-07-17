@@ -41,7 +41,7 @@ export function removeShortlistItem(shortlist: readonly string[], toolSlug: stri
   return shortlist.filter((candidateSlug) => candidateSlug !== toolSlug);
 }
 
-function eligibilityLabel(state: ConditionEvaluationState) {
+export function eligibilityLabel(state: ConditionEvaluationState) {
   if (state === "match") return "Matches current filters";
   if (state === "unknown") return "Current eligibility has unknown evidence";
   return "No longer matches required conditions";

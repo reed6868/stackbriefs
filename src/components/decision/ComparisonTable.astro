@@ -1,0 +1,71 @@
+---
+import type { DomainScenario } from "../../domain/model";
+import { orderedScenarioDimensions } from "../../domain/comparison";
+
+interface Props {
+  scenario: DomainScenario;
+}
+
+const { scenario } = Astro.props;
+const dimensions = orderedScenarioDimensions(scenario);
+---
+
+<section class="comparison-section" data-comparison-section hidden>
+  <div class="comparison-section__heading">
+    <p class="fixture-label">Scenario comparison</p>
+    <h2 id="comparison-title" tabindex="-1" data-comparison-heading>Compare shortlisted Tools</h2>
+    <p>Review the same decision factors, evidence states, and limitations for each Tool.</p>
+  </div>
+  <div
+    class="comparison-region"
+    role="region"
+    aria-labelledby="comparison-title"
+    tabindex="0"
+    data-comparison-region
+  >
+    <table data-comparison-table>
+      <caption>Comparison of shortlisted Tools for {scenario.title}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Decision factor</th>
+          {scenario.candidates.map((candidate) => (
+            <th scope="col" data-comparison-tool={candidate.tool.slug} hidden>
+              <strong>{candidate.tool.name}</strong>
+              <span data-comparison-eligibility>Matches current filters</span>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {dimensions.map((dimension) => (
+          <tr data-comparison-row={dimension.id}>
+            <th scope="row">{dimension.label}</th>
+            {scenario.candidates.map((candidate) => {
+              return (
+                <td
+                  data-comparison-cell={candidate.tool.slug}
+                  hidden
+                  data-dimension-id={dimension.id}
+                >
+                  <span class="comparison-cell__value" data-comparison-value></span>
+                  <span class="evidence-badge" data-evidence-state></span>
+                  <span class="evidence-row__date" data-comparison-date hidden>
+                    Checked <time></time>
+                  </span>
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+        <tr data-comparison-limitation-row>
+          <th scope="row">Limitation</th>
+          {scenario.candidates.map((candidate) => (
+            <td data-comparison-limitation={candidate.tool.slug} hidden>
+              {candidate.limitation}
+            </td>
+          ))}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -130,6 +130,23 @@ describe("static Decision workspace", () => {
     expect(html).not.toMatch(/localStorage|sessionStorage|cookie/i);
   });
 
+  it("renders a hidden semantic comparison table shell for the active Scenario", async () => {
+    const html = await render(writing);
+
+    expect(html).toContain('data-comparison-section hidden');
+    expect(html).toContain('<table data-comparison-table>');
+    expect(html).toContain("Comparison of shortlisted Tools for Writing assistants for small teams");
+    expect(html).toContain('<th scope="col">Decision factor</th>');
+    expect(html).toContain('<th scope="row">Commercial use permitted</th>');
+    expect(html).toContain('<th scope="row">Export formats</th>');
+    expect(html).toContain('<th scope="row">Collaboration mode</th>');
+    expect(html).toContain('<th scope="row">Limitation</th>');
+    expect(html.match(/data-comparison-tool=/g)).toHaveLength(2);
+    expect(html.match(/data-comparison-cell=/g)).toHaveLength(6);
+    expect(html.match(/data-comparison-limitation=/g)).toHaveLength(2);
+    expect(html).not.toMatch(/winner|score|rank/i);
+  });
+
   it("renders match, no-match, and unknown labels with ordered explanations", async () => {
     const writingHtml = await render(writing, [
       condition("collaboration-mode", "shared-workspace"),

@@ -1257,6 +1257,105 @@ html.filter-open {
   font-size: var(--text-meta);
 }
 
+.comparison-section {
+  margin-top: var(--space-12);
+}
+
+.comparison-section__heading {
+  padding-bottom: var(--space-6);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.comparison-section__heading h2 {
+  font-size: var(--text-heading-md);
+}
+
+.comparison-section__heading p:last-child {
+  margin-top: var(--space-3);
+}
+
+.comparison-section__heading h2:focus {
+  scroll-margin-top: var(--space-6);
+}
+
+.comparison-region {
+  max-width: 100%;
+  margin-top: var(--space-6);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.comparison-region table {
+  width: max(100%, var(--comparison-table-width, 100%));
+  border-spacing: 0;
+  border-collapse: separate;
+  table-layout: fixed;
+}
+
+.comparison-region caption {
+  padding-bottom: var(--space-3);
+  color: var(--color-muted);
+  font-size: var(--text-meta);
+  text-align: left;
+}
+
+.comparison-region th,
+.comparison-region td {
+  padding: var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+  border-left: var(--border-width) solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.comparison-region :is(th, td):first-child {
+  width: 11rem;
+}
+
+.comparison-region :is(th, td):last-child {
+  border-right: var(--border-width) solid var(--color-border);
+}
+
+.comparison-region tbody tr:last-child :is(th, td) {
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.comparison-region thead th {
+  background: var(--color-surface);
+}
+
+.comparison-region thead th strong,
+.comparison-region thead th span,
+.comparison-cell__value,
+.comparison-region td .evidence-row__date {
+  display: block;
+}
+
+.comparison-region thead th span,
+.comparison-region td .evidence-row__date {
+  margin-top: var(--space-2);
+  color: var(--color-muted);
+  font-size: var(--text-meta);
+}
+
+.comparison-region thead th[data-eligibility="no_match"] span,
+.comparison-region thead th[data-eligibility="unknown"] span {
+  color: var(--color-warning);
+}
+
+.comparison-cell__value {
+  font-weight: 650;
+}
+
+.comparison-region td .evidence-badge {
+  margin-top: var(--space-3);
+}
+
+.comparison-region th,
+.comparison-region td {
+  overflow-wrap: anywhere;
+}
+
 .decision-return {
   margin-top: var(--space-12);
 }

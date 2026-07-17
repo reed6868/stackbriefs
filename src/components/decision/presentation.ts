@@ -1,6 +1,5 @@
 import type { DimensionContent } from "../../content/schema";
 import type { EvidenceState, EvidenceValue } from "../../domain/evidence-types";
-import type { DomainClaim } from "../../domain/model";
 import type {
   CandidateEvaluation,
   ConditionEvaluation,
@@ -31,15 +30,6 @@ export function dimensionOptions(dimension: DimensionContent) {
         value: String(allowed.value),
         label: allowed.label,
       }));
-}
-
-export function relevantCheckDate(claim: DomainClaim) {
-  const selectedSourceIds = new Set(claim.evidence.sourceIds);
-  return claim.sources
-    .filter((source) => selectedSourceIds.has(source.id))
-    .map((source) => source.lastCheckedAt)
-    .sort()
-    .at(-1);
 }
 
 const evidenceStateLabels: Record<EvidenceState, string> = {

@@ -1,89 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import type { DomainCandidate, DomainScenario } from "../../src/domain/model";
-
 import {
   assertNoSeriousAxeViolations,
   captureViewportScreenshot,
   expectNoPageOverflow,
   watchPageErrors,
 } from "./helpers";
+import { expandWritingScenario } from "./expanded-writing-fixture";
 
 const writingPath = "/decision/writing-assistants";
-
-const extraCandidates = [
-  {
-    id: "candidate-writing-charlie",
-    toolId: "tool-charlie-compose",
-    slug: "charlie-compose",
-    name: "Charlie Compose",
-  },
-  {
-    id: "candidate-writing-delta",
-    toolId: "tool-delta-write",
-    slug: "delta-write",
-    name: "Delta Write",
-  },
-  {
-    id: "candidate-writing-echo",
-    toolId: "tool-echo-editor",
-    slug: "echo-editor",
-    name: "Echo Editor",
-  },
-] as const;
-
-function cloneCandidate(template: DomainCandidate, candidate: typeof extraCandidates[number]) {
-  return {
-    ...structuredClone(template),
-    id: candidate.id,
-    toolId: candidate.toolId,
-    tool: {
-      ...structuredClone(template.tool),
-      id: candidate.toolId,
-      slug: candidate.slug,
-      name: candidate.name,
-    },
-  };
-}
-
-function cloneCandidateMarkup(source: string, candidate: typeof extraCandidates[number]) {
-  return source
-    .replaceAll("candidate-writing-alpha", candidate.id)
-    .replaceAll("alpha-writer", candidate.slug)
-    .replaceAll("Alpha Writer", candidate.name);
-}
-
-function expandWritingScenario(body: string) {
-  const encodedScenario = body.match(/data-decision-scenario="([^"]+)"/)?.[1];
-  if (!encodedScenario) throw new Error("Shortlist fixture requires serialized Scenario data");
-  const scenario = JSON.parse(decodeURIComponent(encodedScenario)) as DomainScenario;
-  const template = scenario.candidates.find((candidate) => candidate.id === "candidate-writing-alpha");
-  if (!template) throw new Error("Shortlist fixture requires Alpha Writer");
-  const expandedScenario = {
-    ...scenario,
-    candidates: [
-      ...scenario.candidates,
-      ...extraCandidates.map((candidate) => cloneCandidate(template, candidate)),
-    ],
-  };
-
-  let expanded = body.replace(
-    encodedScenario,
-    encodeURIComponent(JSON.stringify(expandedScenario)),
-  );
-  const fragments = [
-    /<article class="candidate-card"[^>]*data-candidate-card="candidate-writing-alpha"[\s\S]*?<\/article>/,
-    /<article class="excluded-candidate"[^>]*data-excluded-candidate="candidate-writing-alpha"[\s\S]*?<\/article>/,
-    /<li data-shortlist-item="alpha-writer" hidden>[\s\S]*?<\/li>/,
-  ];
-  fragments.forEach((pattern) => {
-    const source = expanded.match(pattern)?.[0];
-    if (!source) throw new Error(`Shortlist fixture requires markup matching ${pattern}`);
-    const clones = extraCandidates.map((candidate) => cloneCandidateMarkup(source, candidate)).join("");
-    expanded = expanded.replace(source, `${source}${clones}`);
-  });
-  return expanded;
-}
 
 test("desktop shortlist stays URL-only and retains changing eligibility", async ({ page }, testInfo) => {
   const pageErrors = watchPageErrors(page);

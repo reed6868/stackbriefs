@@ -1,7 +1,8 @@
 ---
 import type { DomainCandidate, DomainScenario } from "../../domain/model";
+import { relevantCheckDate } from "../../domain/content-evidence";
 import EvidenceBadge from "./EvidenceBadge.astro";
-import { formatDimensionValue, relevantCheckDate } from "./presentation";
+import { formatDimensionValue } from "./presentation";
 
 interface Props {
   scenario: DomainScenario;
