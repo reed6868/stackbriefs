@@ -27,7 +27,12 @@ async function loadGraph(): Promise<ContentGraph> {
 
 async function graphWithOffer(
   status: OfferContent["status"],
-  options: { sourceCheckedAt?: string; offerCheckedAt?: string; evidenceClaim?: "status" | "terms" } = {},
+  options: {
+    sourceCheckedAt?: string;
+    offerCheckedAt?: string;
+    evidenceClaim?: "status" | "terms";
+    sourceRegion?: string;
+  } = {},
 ) {
   const graph = await loadGraph();
   const evidenceClaim = options.evidenceClaim ?? "status";
@@ -50,7 +55,7 @@ async function graphWithOffer(
     sourceUrl: "https://offers.example/alpha/status",
     assertion: "value",
     observedValue: evidenceClaim === "status" ? status : terms,
-    scope: { region: "global" },
+    scope: { region: options.sourceRegion ?? "global" },
     lastCheckedAt: options.sourceCheckedAt ?? "2026-07-16",
   });
   return graph;
@@ -127,6 +132,12 @@ describe("Tool evidence and Offer projection", () => {
       offerCheckedAt: "2026-07-09",
     })), "alpha-writer")!.offer).toBeUndefined();
     expect(projectToolDetail(publication(await graphWithOffer("verified_deal", {
+      offerCheckedAt: "2026-07-18",
+    })), "alpha-writer")!.offer).toBeUndefined();
+    expect(projectToolDetail(publication(await graphWithOffer("verified_deal", {
+      sourceRegion: "us",
+    })), "alpha-writer")!.offer).toBeUndefined();
+    expect(projectToolDetail(publication(await graphWithOffer("verified_deal", {
       evidenceClaim: "terms",
     })), "alpha-writer")!.offer).toBeUndefined();
   });
@@ -146,28 +157,40 @@ describe("Tool evidence and Offer projection", () => {
 
   it("keeps Decision and Comparison output invariant under Affiliate-only mutations", async () => {
     const baselineGraph = await loadGraph();
-    const mutatedGraph = structuredClone(baselineGraph);
-    mutatedGraph.offers[0]!.affiliateUrl = "https://commercial.example/highest-commission";
-    mutatedGraph.offers[0]!.terms = "Preferred paid placement";
     const baseline = publication(baselineGraph);
-    const mutated = publication(mutatedGraph);
     const baselineScenario = baseline.scenarioOutcomes.find((outcome) =>
       outcome.kind === "published" && outcome.slug === "writing-assistants");
-    const mutatedScenario = mutated.scenarioOutcomes.find((outcome) =>
-      outcome.kind === "published" && outcome.slug === "writing-assistants");
     expect(baselineScenario?.kind).toBe("published");
-    expect(mutatedScenario?.kind).toBe("published");
-    if (baselineScenario?.kind !== "published" || mutatedScenario?.kind !== "published") return;
+    if (baselineScenario?.kind !== "published") return;
     const conditions = [{ dimensionId: "export-formats", mode: "required" as const, value: "pdf" }];
     const baselineDecision = evaluateDecision(baselineScenario.scenario, conditions);
-    const mutatedDecision = evaluateDecision(mutatedScenario.scenario, conditions);
-
-    expect(mutatedDecision).toEqual(baselineDecision);
-    expect(projectComparison(mutatedScenario.scenario, mutatedDecision, ["alpha-writer", "bravo-draft"]))
-      .toEqual(projectComparison(
+    const baselineComparison = projectComparison(
         baselineScenario.scenario,
         baselineDecision,
         ["alpha-writer", "bravo-draft"],
-      ));
+      );
+    const mutations = [
+      (graph: ContentGraph) => { graph.offers = []; },
+      (graph: ContentGraph) => {
+        graph.offers[0]!.affiliateUrl = "https://commercial.example/highest-commission";
+        graph.offers[0]!.terms = "Preferred paid placement";
+        graph.offers[0]!.status = "rejected";
+        graph.offers[0]!.region = "eu";
+      },
+    ];
+
+    for (const mutate of mutations) {
+      const mutatedGraph = structuredClone(baselineGraph);
+      mutate(mutatedGraph);
+      const mutated = publication(mutatedGraph);
+      const mutatedScenario = mutated.scenarioOutcomes.find((outcome) =>
+        outcome.kind === "published" && outcome.slug === "writing-assistants");
+      expect(mutatedScenario?.kind).toBe("published");
+      if (mutatedScenario?.kind !== "published") continue;
+      const mutatedDecision = evaluateDecision(mutatedScenario.scenario, conditions);
+      expect(mutatedDecision).toEqual(baselineDecision);
+      expect(projectComparison(mutatedScenario.scenario, mutatedDecision, ["alpha-writer", "bravo-draft"]))
+        .toEqual(baselineComparison);
+    }
   });
 });

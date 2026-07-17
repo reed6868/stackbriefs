@@ -48,6 +48,8 @@ function mountToolDetailController(root: HTMLElement) {
       const badge = requiredElement<HTMLElement>(row, ".evidence-badge");
       badge.dataset.evidenceState = claim.evidence.state;
       badge.textContent = evidenceStateLabel(claim.evidence.state);
+      requiredElement<HTMLElement>(row, "[data-evidence-explanation]").textContent =
+        claim.evidence.explanation;
     });
   });
 

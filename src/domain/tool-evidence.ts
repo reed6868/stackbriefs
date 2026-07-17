@@ -82,45 +82,47 @@ export function projectToolOffer(
   toolId: string,
   asOf: string,
 ): ToolOfferProjection | undefined {
-  const offer = offers.find((candidate) => candidate.toolId === toolId && qualifyingStatus(candidate.status));
-  if (!offer || !qualifyingStatus(offer.status)) return undefined;
+  const candidates = offers.filter((offer) => offer.toolId === toolId && qualifyingStatus(offer.status));
+  for (const offer of candidates) {
+    if (!qualifyingStatus(offer.status) || offer.lastCheckedAt > asOf) continue;
+    const offerValidThrough = addDaysToIsoDate(offer.lastCheckedAt, 7);
+    if (asOf > offerValidThrough) continue;
 
-  const offerValidThrough = addDaysToIsoDate(offer.lastCheckedAt, 7);
-  if (asOf > offerValidThrough) return undefined;
+    const statusSources = offer.evidence
+      .filter((source) =>
+        source.claimKey === "status" &&
+        source.assertion !== "not_applicable" &&
+        source.observedValue === offer.status &&
+        (offer.region === undefined || source.scope.region === offer.region))
+      .sort((left, right) => left.id.localeCompare(right.id, "en"));
 
-  const statusSources = offer.evidence
-    .filter((source) =>
-      source.claimKey === "status" &&
-      source.assertion !== "not_applicable" &&
-      source.observedValue === offer.status)
-    .sort((left, right) => left.id.localeCompare(right.id, "en"));
+    for (const statusSource of statusSources) {
+      const evidence = resolveEvidence({
+        claim: {
+          subjectType: "offer",
+          subjectId: offer.id,
+          claimKey: "status",
+          category: qualifyingOfferCategories[offer.status],
+          scope: statusSource.scope,
+        },
+        observations: offer.evidence,
+        asOf,
+      });
+      if (evidence.state !== "verified_fact" || evidence.value !== offer.status || !evidence.validThrough) continue;
 
-  for (const statusSource of statusSources) {
-    const evidence = resolveEvidence({
-      claim: {
-        subjectType: "offer",
-        subjectId: offer.id,
-        claimKey: "status",
-        category: qualifyingOfferCategories[offer.status],
-        scope: statusSource.scope,
-      },
-      observations: offer.evidence,
-      asOf,
-    });
-    if (evidence.state !== "verified_fact" || evidence.value !== offer.status || !evidence.validThrough) continue;
-
-    return {
-      id: offer.id,
-      status: offer.status,
-      statusLabel: offerStatusLabels[offer.status],
-      affiliateUrl: offer.affiliateUrl,
-      terms: offer.terms,
-      region: offer.region,
-      lastCheckedAt: offer.lastCheckedAt,
-      validThrough: earlierIsoDate(offerValidThrough, evidence.validThrough),
-      evidence,
-      sources: projectSources(offer.evidence, evidence.sourceIds),
-    };
+      return {
+        id: offer.id,
+        status: offer.status,
+        statusLabel: offerStatusLabels[offer.status],
+        affiliateUrl: offer.affiliateUrl,
+        terms: offer.terms,
+        region: offer.region,
+        lastCheckedAt: offer.lastCheckedAt,
+        validThrough: earlierIsoDate(offerValidThrough, evidence.validThrough),
+        evidence,
+        sources: projectSources(offer.evidence, evidence.sourceIds),
+      };
+    }
   }
 
   return undefined;

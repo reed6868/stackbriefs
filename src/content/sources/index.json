@@ -168,5 +168,18 @@
     "observedValue": ["google-calendar"],
     "scope": { "plan": "team", "platform": "web" },
     "lastCheckedAt": "2026-07-16"
+  },
+  {
+    "fixture": true,
+    "id": "source-offer-charlie-status",
+    "subjectType": "offer",
+    "subjectId": "offer-charlie-verified",
+    "claimKey": "status",
+    "sourceType": "official_pricing",
+    "sourceUrl": "https://offers.example/charlie/status",
+    "assertion": "value",
+    "observedValue": "verified_deal",
+    "scope": { "region": "eu" },
+    "lastCheckedAt": "2026-07-16"
   }
 ]

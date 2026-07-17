@@ -250,7 +250,7 @@ describe("publication assembly", () => {
     expect(mutated.scenarioOutcomes).toEqual(baseline.scenarioOutcomes);
     expect(mutated.publicInputs).toEqual(baseline.publicInputs);
     expect(mutated.offerIssues).toContainEqual(expect.objectContaining({ code: "offer_missing_tool" }));
-    expect(mutated.offers).toEqual([]);
+    expect(mutated.offers).toEqual(baseline.offers.filter((offer) => offer.id !== graph.offers[0]!.id));
   });
 
   it("produces stable ordering and actionable validation messages", async () => {
