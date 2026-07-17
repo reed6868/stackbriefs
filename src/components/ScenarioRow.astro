@@ -1,0 +1,39 @@
+---
+import type { HomeScenario } from "../fixtures/home-scenarios";
+
+interface Props {
+  scenario: HomeScenario;
+}
+
+const { scenario } = Astro.props;
+---
+
+<article class="scenario-row" data-fixture="true">
+  <div class="scenario-row__heading">
+    <div>
+      <p class="fixture-label">Fixture scenario</p>
+      <h3><a href={`/decision/${scenario.slug}`}>{scenario.title}</a></h3>
+    </div>
+    <span aria-label={`${scenario.candidateCount} candidates and ${scenario.dimensionCount} dimensions`}>
+      {scenario.candidateCount} candidates · {scenario.dimensionCount} dimensions
+    </span>
+  </div>
+  <p class="scenario-row__goal">{scenario.goal}</p>
+  <dl class="scenario-row__boundaries">
+    <div>
+      <dt>Prerequisite</dt>
+      <dd>{scenario.prerequisite}</dd>
+    </div>
+    <div>
+      <dt>Suitable for</dt>
+      <dd>{scenario.suitableFor}</dd>
+    </div>
+    <div>
+      <dt>Not suitable for</dt>
+      <dd>{scenario.notSuitableFor}</dd>
+    </div>
+  </dl>
+  <p class="scenario-row__reviewed">
+    Last reviewed <time datetime={scenario.lastReviewedAt}>{scenario.lastReviewedAt}</time>
+  </p>
+</article>

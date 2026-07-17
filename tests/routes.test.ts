@@ -77,7 +77,8 @@ describe("P0 route skeleton", () => {
       "../dist/404.html",
       "../dist/methodology.html",
       "../dist/affiliate-disclosure.html",
-      "../dist/decision/fixture-scenario.html",
+      "../dist/decision/meeting-assistants.html",
+      "../dist/decision/writing-assistants.html",
       "../dist/tool/fixture-tool.html",
       "../dist/_redirects",
     ];

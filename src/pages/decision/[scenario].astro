@@ -1,25 +1,17 @@
 ---
+import type { HomeScenario } from "../../fixtures/home-scenarios";
+import { homeScenarios } from "../../fixtures/home-scenarios";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 interface Props {
-  scenario: {
-    title: string;
-    goal: string;
-  };
+  scenario: HomeScenario;
 }
 
 export function getStaticPaths() {
-  return [
-    {
-      params: { scenario: "fixture-scenario" },
-      props: {
-        scenario: {
-          title: "Fixture writing assistant decision",
-          goal: "Choose a writing assistant for a small team with explicit constraints.",
-        },
-      },
-    },
-  ];
+  return homeScenarios.map((scenario) => ({
+    params: { scenario: scenario.slug },
+    props: { scenario },
+  }));
 }
 
 const { scenario } = Astro.props;
