@@ -2,7 +2,7 @@
 
 **Author:** Product Manager
 **Date:** 2026-07-12
-**Last updated:** 2026-07-16
+**Last updated:** 2026-07-17
 **Status:** Approved product requirements
 **Product:** StackBriefs
 **Market:** English-language public web
@@ -10,7 +10,7 @@
 
 ## Document responsibility
 
-This PRD defines the product boundary, user journeys, public page responsibilities, decision and evidence semantics, release scope, and observable acceptance criteria. It does not define frontend architecture, visual tokens, component APIs, dependency selection, test tooling, deployment mechanics, or Paperclip execution workflow; those belong to the implementation plan or task artifacts.
+This PRD defines the product boundary, user journeys, public page responsibilities, decision and evidence semantics, release scope, and observable acceptance criteria. It does not define frontend architecture, visual tokens, component APIs, dependency selection, test tooling, deployment mechanics, or CLI execution workflow; those belong to the implementation plan or task backlog.
 
 ## 1. Product definition
 

@@ -1,17 +1,20 @@
 # StackBriefs Frontend Development Plan — Toolify UI Reference
 
 **Date:** 2026-07-16
-**Status:** Approved implementation plan; product implementation has not started
+**Last updated:** 2026-07-17
+**Status:** Approved implementation plan; walking skeleton complete, content and decision implementation pending
 **Production repository:** `/home/ja/stackbriefs`
 **Visual reference repository:** `/home/ja/ai-website-cloner-template`
 
 ## Document responsibility
 
-This document is the implementation source of truth for frontend architecture, information architecture, visual rules, page composition, component boundaries, interactions, responsive behavior, content storage, accessibility, security, testing, and release sequencing. Product meaning and acceptance semantics belong to [PRD.md](PRD.md). Paperclip, worktrees, reviewers, watchdogs, and task prompts belong to task artifacts, not these product documents.
+This document is the implementation source of truth for frontend architecture, information architecture, visual rules, page composition, component boundaries, interactions, responsive behavior, content storage, accessibility, security, testing, and release sequencing. Product meaning and acceptance semantics belong to [PRD.md](PRD.md). CLI execution state, reusable-worktree policy, task branches, pull requests, reviews, approvals, and task prompts belong to [development-backlog.md](development-backlog.md), not this implementation contract.
 
 ## 1. Current baseline and immediate cleanup
 
-The repository is a minimal static Astro scaffold, not a partially implemented product. It currently contains one placeholder page, one layout, one stylesheet, and one smoke test.
+The repository has completed the walking-skeleton baseline through SB-104 and has a provisional SB-105 Home implementation merged at `513bdd5`. The accepted `main` baseline contains the production visual foundation, shared Header/Footer/mobile navigation/Breadcrumbs/StatusPage shell, the P0 route skeleton, permanent `/decision` redirect, production `site` value, trailing-slash policy, and reviewed Home Hero/Scenario-row/process/trust presentation.
+
+The provisional Home and Decision fixtures currently read from `src/fixtures/home-scenarios.ts`. The authoritative content schema, heterogeneous Content Collection records, publication assembly, evidence and decision modules, interactive Decision behavior, shortlist, comparison, production content, and Cloudflare deployment are not implemented yet. SB-201 and SB-202 must replace that temporary fixture model with validated publication projections before SB-105 can be accepted under the current sequence.
 
 The declared stack is Astro `7.0.7` with static output, strict TypeScript `5.9.3`, Tailwind CSS `4.3.2`, MDX `7.0.2`, Vitest `4.1.10`, and Cloudflare Pages delivery.
 
@@ -25,14 +28,20 @@ npm run test:schema
 npm run build
 ```
 
-Before or inside the first product slice:
+Completed baseline work:
 
-1. standardize local, CI, and Cloudflare builds on a supported Node `24.x` release without governing an exact patch in prose;
-2. separate browser application types from Node/Vitest test types so `src` cannot accidentally rely on `process`, `Buffer`, or Vitest globals;
-3. implement `tests/content-schema.test.ts` before treating `npm run test:schema` as a required passing gate;
-4. replace the current warm-cream placeholder stylesheet with the visual system in this plan;
-5. configure the production `site` and one trailing-slash policy with the P0 route skeleton; configure Cloudflare Preview `noindex` before the first Preview deployment;
-6. reserve `release` as the only Cloudflare Pages Production branch so ordinary `main` merges remain Preview-only.
+1. local and CI builds use supported Node `24.x` without governing an exact patch in prose;
+2. browser application types are separated from Node/Vitest test types;
+3. the placeholder visual layer has been replaced by the approved visual foundation;
+4. the production `site`, trailing-slash policy, shared shell, and P0 route skeleton are implemented;
+5. the provisional Home Hero, Scenario rows, three-step explanation, trust links, responsive styles, and deterministic-order tests are merged, backed temporarily by `src/fixtures/home-scenarios.ts`.
+
+Remaining prerequisites:
+
+1. implement `tests/content-schema.test.ts` before treating `npm run test:schema` as a required passing gate;
+2. establish the authoritative content schema and publication assembly, then migrate the existing Home and Decision consumers off `src/fixtures/home-scenarios.ts` without changing their reviewed presentation or ordering behavior;
+3. configure Cloudflare Preview `noindex` before the first Preview deployment;
+4. reserve `release` as the only Cloudflare Pages Production branch so ordinary `main` merges remain Preview-only.
 
 Do not revert unrelated uncommitted repository changes while applying this plan.
 
@@ -388,10 +397,10 @@ Release expectations:
 - no client-framework bundle or runtime third-party script;
 - LCP at or below `2.5s` and CLS at or below `0.1` in a representative mobile and desktop lab check;
 - no serious axe violation, uncaught console error, broken primary link, or unintended page overflow;
-- initial route JavaScript remains within a reviewed `50 KiB` gzip-equivalent budget; a measured exception requires explicit Board approval;
+- initial route JavaScript remains within a reviewed `50 KiB` gzip-equivalent budget; a measured exception requires explicit user approval;
 - preview smoke checks primary routes, redirects, canonical/noindex behavior, security headers, one core interaction, and JavaScript-disabled Decision content;
 - Cloudflare Pages uses `release` as its only Production branch; `main`, pull requests, and other branches remain Preview-only;
-- Board approval names the exact merged-main candidate commit before it is promoted without additional changes to `release`;
+- user approval names the exact merged-main candidate commit before it is promoted without additional changes to `release`;
 - production deploys that exact passing commit. If a previous successful Production deployment exists, retain it as the rollback target; for the first deployment, record the absence of a predecessor and establish the successful release as the initial rollback baseline.
 
 Do not require literal browser user agents, fixed CDP profiles, three-run medians, every-file hashes, `/_release.json`, long-term release-evidence retention, or an Analytics collector for P0.
@@ -402,15 +411,16 @@ Responsive behavior, accessibility, tests, and screenshots are part of every pha
 
 ### Phase 1 — Walking skeleton
 
-- align Node and TypeScript/test configuration;
-- establish tokens, typography, shared shell, Header/Footer, mobile menu, Breadcrumbs, and StatusPage;
-- configure the production `site` and one trailing-slash policy, then create all P0 routes using fixture content;
-- implement Home Scenario rows and `/decision` redirect;
-- verify mobile, tablet, desktop, keyboard, and screenshots.
+- completed: align Node and TypeScript/test configuration;
+- completed: establish tokens, typography, shared shell, Header/Footer, mobile menu, Breadcrumbs, and StatusPage;
+- completed: configure the production `site` and trailing-slash policy, create all P0 route skeletons, and implement the `/decision` redirect;
+- completed: verify the walking skeleton at mobile, tablet, and desktop widths with keyboard and build checks.
 
-### Phase 2 — Decision vertical slice
+### Phase 2 — Content foundation, Home, and Decision vertical slice
 
 - establish the single content schema and two heterogeneous fixtures;
+- assemble validated publication projections and fixture isolation by build target;
+- migrate the existing Home and Decision consumers from `src/fixtures/home-scenarios.ts` to the validated publication projections while preserving their reviewed UI, ordering, and neutrality behavior;
 - implement evidence resolution, required/optional evaluation, stable ordering, and URL normalization with tests;
 - build the Scenario header, criteria rail/sheet, result summary, candidate/excluded states, and zero-result recovery;
 - introduce Playwright and axe for the complete slice.
@@ -429,7 +439,7 @@ Responsive behavior, accessibility, tests, and screenshots are part of every pha
 - approve one bounded production Scenario contract, build its independent source ledger, encode it, and pass a separate publication-readiness Gate;
 - configure GitHub-backed Cloudflare Pages Preview with `release` isolated as the Production branch;
 - run a verification-only release-candidate Gate; route failures to atomic blocking defect tasks rather than fixing them inside the Gate;
-- after Board approval, promote the exact candidate commit to `release`, then run a separate verification-only Production and rollback-readiness Gate.
+- after user approval, promote the exact candidate commit to `release`, then run a separate verification-only Production and rollback-readiness Gate.
 
 ## 13. Definition of done
 
@@ -443,5 +453,5 @@ P0 is complete when:
 - Toolify reference geometry has been reimplemented without copied branding, content, assets, or runtime dependencies;
 - responsive, accessibility, screenshot, SEO, security-header, performance, and Preview smoke gates pass;
 - `npm run check`, `npm run test:schema`, `npm test`, and `npm run build` pass from a clean candidate commit;
-- the Board-approved merged-main commit is promoted unchanged to the `release` branch and is the commit served by Cloudflare Production;
+- the user-approved merged-main commit is promoted unchanged to the `release` branch and is the commit served by Cloudflare Production;
 - the production deployment is smoke-tested; an existing last-known-good Production deployment remains available for rollback, or the first successful deployment is truthfully recorded as the initial rollback baseline.
