@@ -6,7 +6,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import Breadcrumbs from "../src/components/Breadcrumbs.astro";
 import SiteFooter from "../src/components/SiteFooter.astro";
 import SiteHeader from "../src/components/SiteHeader.astro";
-import { containTabFocus, isCurrentSection } from "../src/components/navigation";
+import { containTabFocus, isCurrentPage, isCurrentSection } from "../src/components/navigation";
 import BaseLayout from "../src/layouts/BaseLayout.astro";
 
 const destinations = ["/#scenarios", "/methodology", "/affiliate-disclosure"];
@@ -33,6 +33,11 @@ describe("shared shell", () => {
     expect(isCurrentSection("/#scenarios", new URL("https://stackbriefs.test/#scenarios"))).toBe(true);
     expect(isCurrentSection("/#scenarios", new URL("https://stackbriefs.test/"))).toBe(false);
     expect(isCurrentSection("/#scenarios", new URL("https://stackbriefs.test/methodology#scenarios"))).toBe(false);
+  });
+
+  it("normalizes static HTML filenames when marking the current page", () => {
+    expect(isCurrentPage("/affiliate-disclosure", "/affiliate-disclosure.html")).toBe(true);
+    expect(isCurrentPage("/methodology", "/affiliate-disclosure.html")).toBe(false);
   });
 
   it("scopes current-section updates to shell scenario links", async () => {

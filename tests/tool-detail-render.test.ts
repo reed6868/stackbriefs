@@ -186,6 +186,7 @@ describe("Tool detail rendering", () => {
     expect(html).toContain("Verified deal");
     expect(html).toContain("20% off the documented team plan.");
     expect(html).toContain("StackBriefs may receive compensation");
+    expect(html).toContain('href="/affiliate-disclosure"');
   });
 
   it("keeps the Official Link when no Offer qualifies and renders no commercial CTA language", async () => {
