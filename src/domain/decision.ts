@@ -77,13 +77,20 @@ function allowedValues(dimension: DimensionContent) {
     : dimension.allowedValues.map(({ value }) => value);
 }
 
-function validateCondition(dimension: DimensionContent, condition: DecisionCondition) {
+export function isValidDecisionConditionValue(
+  dimension: DimensionContent,
+  value: DecisionConditionValue,
+) {
   const validType = dimension.valueType === "boolean"
-    ? typeof condition.value === "boolean"
+    ? typeof value === "boolean"
     : dimension.valueType === "number"
-      ? typeof condition.value === "number" && Number.isFinite(condition.value)
-      : typeof condition.value === "string";
-  if (!validType || !allowedValues(dimension).includes(condition.value as never)) {
+      ? typeof value === "number" && Number.isFinite(value)
+      : typeof value === "string";
+  return validType && allowedValues(dimension).includes(value as never);
+}
+
+function validateCondition(dimension: DimensionContent, condition: DecisionCondition) {
+  if (!isValidDecisionConditionValue(dimension, condition.value)) {
     throw new Error(`Decision condition has invalid value for Dimension "${dimension.id}"`);
   }
 }
