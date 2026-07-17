@@ -48,11 +48,11 @@ describe("SEO projections", () => {
   it("escapes executable JSON-LD boundaries", () => {
     const serialized = serializeStructuredData({
       "@context": "https://schema.org",
-      name: "</script><script>alert(1)</script>\u2028unsafe\u2029",
+      name: "</ScRiPt><script>alert(1)</script><!--unsafe-->\u2028unsafe\u2029",
     });
 
-    expect(serialized).not.toContain("</script>");
-    expect(serialized).toContain("\\u003c/script>");
+    expect(serialized).not.toMatch(/<\/?script|<!--/i);
+    expect(serialized).toContain("\\u003c/ScRiPt>");
     expect(serialized).toContain("\\u2028");
     expect(serialized).toContain("\\u2029");
   });

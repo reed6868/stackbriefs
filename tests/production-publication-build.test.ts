@@ -24,10 +24,11 @@ describe("Production publication build", () => {
         },
       });
 
-      const [home, methodology, disclosure] = await Promise.all([
+      const [home, methodology, disclosure, headers] = await Promise.all([
         readFile(join(output, "index.html"), "utf8"),
         readFile(join(output, "methodology.html"), "utf8"),
         readFile(join(output, "affiliate-disclosure.html"), "utf8"),
+        readFile(join(output, "_headers"), "utf8"),
       ]);
       expect(home).not.toContain("/decision/meeting-assistants");
       expect(home).not.toContain("/decision/writing-assistants");
@@ -40,6 +41,27 @@ describe("Production publication build", () => {
       expect(disclosure).toContain("Offer Link");
       expect(disclosure).not.toContain('data-fixture="true"');
       expect(disclosure).not.toMatch(/placeholder|final content arrives later/i);
+      expect(headers).toContain("/*");
+      expect(headers).toContain("Content-Security-Policy: default-src 'self'");
+      expect(headers).toContain("script-src 'self'");
+      expect(headers).toContain("style-src 'self'");
+      expect(headers).toContain("img-src 'self'");
+      expect(headers).toContain("font-src 'self'");
+      expect(headers).toContain("connect-src 'none'");
+      expect(headers).toContain("object-src 'none'");
+      expect(headers).toContain("base-uri 'none'");
+      expect(headers).toContain("frame-ancestors 'none'");
+      expect(headers).toContain("form-action 'self'");
+      expect(headers).not.toMatch(/unsafe-inline|unsafe-eval|https?:\/\//);
+      expect(headers).toContain("Referrer-Policy: strict-origin-when-cross-origin");
+      expect(headers).toContain("X-Content-Type-Options: nosniff");
+      expect(headers).toContain(
+        "Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+      );
+      for (const html of [home, methodology, disclosure]) {
+        expect(html).not.toMatch(/<script(?![^>]+type="application\/ld\+json")(?![^>]+src="\/)/);
+        expect(html).not.toMatch(/<link[^>]+rel="stylesheet"[^>]+href="(?!\/)/);
+      }
       await expect(access(join(output, "decision"))).rejects.toThrow();
       await expect(access(join(output, "tool"))).rejects.toThrow();
     } finally {

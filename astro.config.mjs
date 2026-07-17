@@ -1,9 +1,11 @@
 import mdx from "@astrojs/mdx";
+import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import { resolveBuildTarget } from "./src/content/build-target";
 import { assembleFilePublication } from "./src/content/file-publication";
+import { trustedMdxPolicy } from "./src/content/trusted-mdx-policy";
 import { isIndexableTarget } from "./src/domain/public-inputs";
 import { lifecycleRedirects } from "./src/integrations/lifecycle-redirects";
 
@@ -31,10 +33,17 @@ export default defineConfig({
   site: "https://stackbriefs.pages.dev",
   trailingSlash: "never",
   output: "static",
+  markdown: {
+    processor: unified({ remarkPlugins: [trustedMdxPolicy] }),
+  },
   build: {
     format: "file",
   },
-  integrations: [mdx(), lifecycleRedirects(publication), ...(sitemapIntegration ? [sitemapIntegration] : [])],
+  integrations: [
+    mdx(),
+    lifecycleRedirects(publication),
+    ...(sitemapIntegration ? [sitemapIntegration] : []),
+  ],
   vite: {
     plugins: [tailwindcss()],
   },

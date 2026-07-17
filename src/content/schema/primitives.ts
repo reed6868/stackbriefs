@@ -24,9 +24,29 @@ export const isoDate = z
     );
   }, "must be a valid ISO calendar date (YYYY-MM-DD)");
 
+function parseUrl(value: string) {
+  try {
+    return new URL(value);
+  } catch {
+    return undefined;
+  }
+}
+
 export const httpsUrl = z
   .url("must be a valid URL")
-  .refine((value) => new URL(value).protocol === "https:", "must use https");
+  .refine((value) => parseUrl(value)?.protocol === "https:", "must use https")
+  .refine((value) => {
+    const url = parseUrl(value);
+    return !url || (url.username === "" && url.password === "");
+  }, "must not include URL credentials");
+
+export const localPublicImagePath = z
+  .string()
+  .trim()
+  .refine((value) => {
+    if (!/^\/(?!\/)[A-Za-z0-9._/-]+\.(?:avif|gif|jpe?g|png|svg|webp)$/i.test(value)) return false;
+    return value.split("/").every((segment) => segment !== "." && segment !== "..");
+  }, "must use a local public asset image path");
 
 export const uniqueStrings = <T extends z.ZodType<string>>(item: T, message: string) =>
   z.array(item).refine((values) => new Set(values).size === values.length, message);

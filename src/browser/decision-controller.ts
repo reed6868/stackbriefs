@@ -240,7 +240,7 @@ function focusResultSummary(summary: HTMLElement) {
 }
 
 function mountDecisionController(root: HTMLElement) {
-  const staticMarkup = root.innerHTML;
+  const staticContent = [...root.childNodes].map((node) => node.cloneNode(true));
   const staticUrl = location.pathname;
   const controllerEvents = new AbortController();
   let failed = false;
@@ -251,7 +251,7 @@ function mountDecisionController(root: HTMLElement) {
     controllerEvents.abort();
     document.documentElement.classList.remove("filter-open");
     document.documentElement.classList.remove("shortlist-open");
-    root.innerHTML = staticMarkup;
+    root.replaceChildren(...staticContent.map((node) => node.cloneNode(true)));
     delete root.dataset.decisionEnhanced;
     if (`${location.pathname}${location.search}${location.hash}` !== staticUrl) {
       history.replaceState(null, "", staticUrl);

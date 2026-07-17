@@ -179,9 +179,9 @@ describe("Tool detail rendering", () => {
     };
     const html = await render(detail);
 
-    expect(html).toMatch(/data-link-type="official"[^>]*rel="noopener noreferrer"/);
-    expect(html).toMatch(/data-link-type="evidence"[^>]*rel="noopener noreferrer"/);
-    expect(html).toMatch(/data-link-type="offer"[^>]*rel="noopener sponsored"/);
+    expect(html).toMatch(/data-link-type="official"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/);
+    expect(html).toMatch(/data-link-type="evidence"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/);
+    expect(html).toMatch(/data-link-type="offer"[^>]*target="_blank"[^>]*rel="noopener sponsored"/);
     expect(html).toContain("Affiliate Offer");
     expect(html).toContain("Verified deal");
     expect(html).toContain("20% off the documented team plan.");
