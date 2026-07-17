@@ -1,0 +1,35 @@
+---
+import type { DecisionEvaluation } from "../../domain/decision";
+import type { DomainScenario } from "../../domain/model";
+
+interface Props {
+  scenario: DomainScenario;
+  evaluation: DecisionEvaluation;
+}
+
+const { scenario, evaluation } = Astro.props;
+const names = new Map(scenario.candidates.map((candidate) => [candidate.id, candidate.tool.name]));
+---
+
+{evaluation.matches.length === 0 && (
+  <section class="zero-results" aria-labelledby="zero-results-title">
+    <p class="fixture-label">Recovery</p>
+    <h2 id="zero-results-title">Review one requirement at a time</h2>
+    <p>No requirement has been changed automatically.</p>
+    {evaluation.relaxations.length > 0 ? (
+      <ul>
+        {evaluation.relaxations.map((relaxation) => (
+          <li>
+            <strong>Review {relaxation.label}</strong>
+            <span>
+              {relaxation.candidateIds.map((candidateId) => names.get(candidateId)).filter(Boolean).join(", ")}
+              {" could match if this requirement changes."}
+            </span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>Clear a required condition or return to the Scenario boundaries before continuing.</p>
+    )}
+  </section>
+)}

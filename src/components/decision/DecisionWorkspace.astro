@@ -1,0 +1,40 @@
+---
+import type { DecisionEvaluation } from "../../domain/decision";
+import type { DomainCandidate, DomainScenario } from "../../domain/model";
+import CandidateCard from "./CandidateCard.astro";
+import CriteriaPanel from "./CriteriaPanel.astro";
+import ExcludedCandidateList from "./ExcludedCandidateList.astro";
+import ResultSummary from "./ResultSummary.astro";
+import ScenarioHeader from "./ScenarioHeader.astro";
+import ZeroResults from "./ZeroResults.astro";
+
+interface Props {
+  scenario: DomainScenario;
+  evaluation: DecisionEvaluation;
+}
+
+const { scenario, evaluation } = Astro.props;
+const candidates = new Map<string, DomainCandidate>(scenario.candidates.map((candidate) => [candidate.id, candidate]));
+---
+
+<article class="decision-page" data-fixture={scenario.fixture ? "true" : undefined}>
+  <ScenarioHeader scenario={scenario} />
+  <div class="decision-workspace">
+    <CriteriaPanel scenario={scenario} conditions={evaluation.appliedConditions} />
+    <div class="decision-results">
+      <ResultSummary evaluation={evaluation} />
+      {evaluation.matches.length > 0 && (
+        <div class="candidate-list" aria-label="Matching tools">
+          {evaluation.matches.map((match) => {
+            const candidate = candidates.get(match.candidateId);
+            return candidate
+              ? <CandidateCard scenario={scenario} candidate={candidate} evaluation={match} />
+              : null;
+          })}
+        </div>
+      )}
+      <ZeroResults scenario={scenario} evaluation={evaluation} />
+      <ExcludedCandidateList scenario={scenario} evaluation={evaluation} />
+    </div>
+  </div>
+</article>

@@ -38,15 +38,19 @@ describe("P0 route skeleton", () => {
 
       if (path.endsWith("404.astro")) {
         expect(source).toContain("<StatusPage");
+      } else if (path.includes("decision/")) {
+        expect(source).toContain("<DecisionWorkspace");
       } else {
         expect(source.match(/<h1(?:\s|>)/g), `${path} has one H1`).toHaveLength(1);
       }
     }
   });
 
-  it("marks non-production route placeholders as fixtures", async () => {
+  it("marks remaining non-production route placeholders as fixtures", async () => {
     const routes = await Promise.all(
-      fixtureRoutePaths.map((path) => readFile(new URL(path, import.meta.url), "utf8")),
+      fixtureRoutePaths
+        .filter((path) => !path.includes("decision/"))
+        .map((path) => readFile(new URL(path, import.meta.url), "utf8")),
     );
 
     for (const source of routes) {
@@ -98,6 +102,11 @@ describe("P0 route skeleton", () => {
     for (const decision of [meetingDecision, writingDecision]) {
       expect(decision).not.toContain('href="/tool/fixture-tool"');
       expect(decision).toContain('href="/#scenarios"');
+      expect(decision).toContain("Decision criteria");
+      expect(decision).toContain("Evidence summary");
+      expect(decision).toContain("Suitable for");
+      expect(decision).toContain("Not suitable for");
+      expect(decision).not.toContain("Route skeleton");
     }
     expect(tool).not.toContain('href="/decision/');
     expect(tool).toContain('href="/#scenarios"');
