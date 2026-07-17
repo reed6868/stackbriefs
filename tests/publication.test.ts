@@ -49,6 +49,7 @@ describe("publication assembly", () => {
       "collaboration-mode",
     ]);
     expect(writing.scenario.candidates[0]?.claims[0]?.sources[0]?.id).toBe("source-writing-alpha-commercial");
+    expect(writing.scenario.candidates[0]?.claims[0]?.evidence).toMatchObject({ state: "verified_fact", value: true });
     expect(JSON.stringify(writing.scenario)).not.toMatch(/affiliateUrl|offer-alpha|research_only/);
   });
 
@@ -122,18 +123,9 @@ describe("publication assembly", () => {
 
   it("blocks stale gating claims without blocking an unrelated fresh Scenario", async () => {
     const graph = await loadGraph();
+    graph.sources.find((source) => source.id === "source-writing-alpha-commercial")!.lastCheckedAt = "2026-01-01";
 
-    const assembly = assemblePublication(graph, {
-      ...development,
-      gatingClaims: [
-        {
-          candidateId: "candidate-writing-alpha",
-          dimensionId: "commercial-use",
-          state: "stale",
-          reason: "evidence resolver marked the gating claim stale",
-        },
-      ],
-    });
+    const assembly = assemblePublication(graph, development);
     const writing = scenarioOutcome(assembly, "writing-assistants");
 
     expect(writing.kind).toBe("blocked");

@@ -126,8 +126,18 @@ const baseGraph: ContentGraphInput = {
       limitation: "Fixture evidence covers only the documented team plan.",
       handsOnState: "partially_tested",
       claimBindings: {
-        "commercial-use": { subjectType: "candidate", claimKey: "commercial-use" },
-        "export-formats": { subjectType: "candidate", claimKey: "export-formats" },
+        "commercial-use": {
+          subjectType: "candidate",
+          claimKey: "commercial-use",
+          evidenceCategory: "rights",
+          scope: { plan: "team", region: "global" },
+        },
+        "export-formats": {
+          subjectType: "candidate",
+          claimKey: "export-formats",
+          evidenceCategory: "export",
+          scope: { plan: "team", platform: "web" },
+        },
       },
     },
     {
@@ -138,8 +148,18 @@ const baseGraph: ContentGraphInput = {
       limitation: "Fixture evidence covers only calls hosted in the selected region.",
       handsOnState: "not_tested",
       claimBindings: {
-        "retention-days": { subjectType: "candidate", claimKey: "retention-days" },
-        "hosting-region": { subjectType: "candidate", claimKey: "hosting-region" },
+        "retention-days": {
+          subjectType: "candidate",
+          claimKey: "retention-days",
+          evidenceCategory: "privacy",
+          scope: { plan: "business", region: "eu" },
+        },
+        "hosting-region": {
+          subjectType: "candidate",
+          claimKey: "hosting-region",
+          evidenceCategory: "region",
+          scope: { plan: "business", region: "eu" },
+        },
       },
     },
   ],
@@ -411,7 +431,12 @@ describe("authoritative content schema", () => {
   it("rejects wrong-Scenario claim bindings and non-fixture dependencies", () => {
     const wrongScope = cloneGraph();
     wrongScope.candidates[0]!.claimBindings = {
-      "retention-days": { subjectType: "candidate", claimKey: "retention-days" },
+      "retention-days": {
+        subjectType: "candidate",
+        claimKey: "retention-days",
+        evidenceCategory: "privacy",
+        scope: { plan: "team", region: "global" },
+      },
     };
     expect(() => parseContentGraph(wrongScope)).toThrow(
       /dimension "retention-days" does not belong to Scenario "scenario-writing"/,
@@ -432,6 +457,8 @@ describe("authoritative content schema", () => {
     sourceEscape.candidates[0]!.claimBindings["commercial-use"] = {
       subjectType: "tool",
       claimKey: "commercial-use",
+      evidenceCategory: "rights",
+      scope: { plan: "team", region: "global" },
     };
     sourceEscape.sources[0]!.subjectType = "tool";
     sourceEscape.sources[0]!.subjectId = "tool-alpha";
@@ -471,6 +498,54 @@ describe("authoritative content schema", () => {
     const wrongUnit = cloneGraph();
     wrongUnit.sources.find((source) => source.id === "source-meetings-retention")!.observedUnit = "hours";
     expect(() => parseContentGraph(wrongUnit)).toThrow(/must use unit "days"/);
+  });
+
+  it("supports explicit non-applicability without inventing a canonical value", () => {
+    const graph = cloneGraph();
+    const source = graph.sources[0]!;
+    const { observedValue: _observedValue, observedUnit: _observedUnit, ...sourceFields } = source;
+    graph.sources[0] = { ...sourceFields, assertion: "not_applicable" };
+
+    expect(parseContentGraph(graph).sources[0]).toMatchObject({ assertion: "not_applicable" });
+
+    const offerGraph = cloneGraph();
+    offerGraph.offers[0]!.evidenceIds = ["source-offer-not-applicable"];
+    offerGraph.sources.push({
+      fixture: true,
+      id: "source-offer-not-applicable",
+      subjectType: "offer",
+      subjectId: "offer-alpha",
+      claimKey: "status",
+      sourceType: "official_pricing",
+      sourceUrl: "https://offers.example/alpha/status",
+      assertion: "not_applicable",
+      scope: { region: "global" },
+      lastCheckedAt: "2026-07-16",
+    });
+    expect(() => parseContentGraph(offerGraph)).toThrow(/Offer observations must assert a canonical value/);
+  });
+
+  it("requires editorial assessments to be explicit StackBriefs-authored assertions", () => {
+    const graph = cloneGraph();
+    graph.sources[0] = {
+      ...graph.sources[0]!,
+      sourceType: "stackbriefs_editorial",
+      assertion: "editorial_assessment",
+      observedValue: true,
+    };
+    expect(parseContentGraph(graph).sources[0]).toMatchObject({
+      sourceType: "stackbriefs_editorial",
+      assertion: "editorial_assessment",
+    });
+
+    const weakAssertion = cloneGraph();
+    weakAssertion.sources[0] = {
+      ...weakAssertion.sources[0]!,
+      sourceType: "community_report",
+      assertion: "editorial_assessment",
+      observedValue: true,
+    };
+    expect(() => parseContentGraph(weakAssertion)).toThrow(/must use the explicit stackbriefs_editorial source type/);
   });
 
   it("rejects Source claims that do not resolve through a Candidate binding", () => {

@@ -1,10 +1,11 @@
 import type { ContentGraph, ScenarioContent } from "../content/schema";
+import { evidenceCellKey } from "./content-evidence";
+import type { EvidenceResolution, GatingClaimReadiness } from "./evidence-types";
 import type {
   BlockedScenarioOutcome,
   DomainCandidate,
   DomainClaim,
   DomainScenario,
-  GatingClaimReadiness,
   PublicationIssue,
   PublicationOptions,
   ScenarioPublicationOutcome,
@@ -16,21 +17,25 @@ import {
   validateReplacement,
 } from "./publication-helpers";
 
+export interface ScenarioAssemblyContext {
+  referenceIssues: ReadonlyMap<string, readonly PublicationIssue[]>;
+  invalidScenarioIds: ReadonlySet<string>;
+  evidenceByClaim: ReadonlyMap<string, EvidenceResolution>;
+  gatingClaims: readonly GatingClaimReadiness[];
+}
+
 function assemblePublishedScenario(
   scenario: ScenarioContent,
   graph: ContentGraph,
-  options: PublicationOptions,
   referenceIssues: readonly PublicationIssue[],
+  evidenceByClaim: ReadonlyMap<string, EvidenceResolution>,
+  readinessByClaim: ReadonlyMap<string, GatingClaimReadiness>,
 ): ScenarioPublicationOutcome {
   const path = `scenarios[${scenario.id}]`;
   const issues: PublicationIssue[] = [...referenceIssues];
   const candidatesById = new Map(graph.candidates.map((candidate) => [candidate.id, candidate]));
   const toolsById = new Map(graph.tools.map((tool) => [tool.id, tool]));
   const domainCandidates: DomainCandidate[] = [];
-  const readinessByClaim = new Map(
-    (options.gatingClaims ?? []).map((readiness) => [`${readiness.candidateId}:${readiness.dimensionId}`, readiness]),
-  );
-
   if (!scenario.fixture && scenario.candidateIds.length < 3) {
     issues.push(
       publicationIssue("insufficient_candidates", `${path}.candidateIds`, "published Scenario requires at least three candidates"),
@@ -101,7 +106,7 @@ function assemblePublishedScenario(
         );
         return;
       }
-      const readiness = readinessByClaim.get(`${candidate.id}:${dimension.id}`) as GatingClaimReadiness | undefined;
+      const readiness = readinessByClaim.get(evidenceCellKey(candidate.id, dimension.id));
       if (readiness?.state === "stale") {
         issues.push(
           publicationIssue(
@@ -133,7 +138,10 @@ function assemblePublishedScenario(
         subjectType: binding.subjectType,
         subjectId,
         claimKey: binding.claimKey,
+        evidenceCategory: binding.evidenceCategory,
+        scope: binding.scope,
         sources,
+        evidence: evidenceByClaim.get(evidenceCellKey(candidate.id, dimension.id))!,
       });
     });
 
@@ -169,10 +177,12 @@ function assemblePublishedScenario(
 export function assembleScenarioOutcomes(
   graph: ContentGraph,
   options: PublicationOptions,
-  referenceIssues: ReadonlyMap<string, readonly PublicationIssue[]>,
-  invalidScenarioIds: ReadonlySet<string>,
+  context: ScenarioAssemblyContext,
 ) {
   const scenariosBySlug = new Map(graph.scenarios.map((scenario) => [scenario.slug, scenario]));
+  const readinessByClaim = new Map(
+    context.gatingClaims.map((readiness) => [evidenceCellKey(readiness.candidateId, readiness.dimensionId), readiness]),
+  );
 
   const initialOutcomes = [...graph.scenarios]
     .sort((left, right) => left.slug.localeCompare(right.slug, "en"))
@@ -180,13 +190,13 @@ export function assembleScenarioOutcomes(
       if (fixtureExcluded(scenario.fixture, options.target)) {
         return { kind: "hidden", id: scenario.id, slug: scenario.slug, fixture: true, reason: "fixture_excluded" };
       }
-      if (invalidScenarioIds.has(scenario.id)) {
+      if (context.invalidScenarioIds.has(scenario.id)) {
         return { kind: "hidden", id: scenario.id, slug: scenario.slug, fixture: scenario.fixture, reason: "invalid" };
       }
       if (scenario.status === "draft") {
         if (scenario.firstPublishedAt) {
           const issues = [
-            ...(referenceIssues.get(scenario.id) ?? []),
+            ...(context.referenceIssues.get(scenario.id) ?? []),
             publicationIssue(
               "temporarily_withdrawn",
               `scenarios[${scenario.id}].status`,
@@ -249,7 +259,13 @@ export function assembleScenarioOutcomes(
           statusCode: 301,
         };
       }
-      return assemblePublishedScenario(scenario, graph, options, referenceIssues.get(scenario.id) ?? []);
+      return assemblePublishedScenario(
+        scenario,
+        graph,
+        context.referenceIssues.get(scenario.id) ?? [],
+        context.evidenceByClaim,
+        readinessByClaim,
+      );
     });
 
   const outcomesBySlug = new Map(initialOutcomes.map((outcome) => [outcome.slug, outcome]));
