@@ -1,4 +1,7 @@
-import { readFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { access, readFile } from "node:fs/promises";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -16,6 +19,7 @@ const routePaths = [
 ] as const;
 
 const fixtureRoutePaths = routePaths.slice(0, -1);
+const execFileAsync = promisify(execFile);
 
 describe("P0 route skeleton", () => {
   let container: Awaited<ReturnType<typeof AstroContainer.create>>;
@@ -59,8 +63,28 @@ describe("P0 route skeleton", () => {
 
     expect(config).toContain('site: "https://stackbriefs.pages.dev"');
     expect(config).toContain('trailingSlash: "never"');
+    expect(config).toMatch(/build:\s*{[\s\S]*format:\s*"file"/);
     expect(redirects.trim()).toBe("/decision /#scenarios 301");
   });
+
+  it("builds slashless routes as HTML files", async () => {
+    const root = fileURLToPath(new URL("..", import.meta.url));
+
+    await execFileAsync("npm", ["run", "build"], { cwd: root });
+
+    const builtFiles = [
+      "../dist/index.html",
+      "../dist/404.html",
+      "../dist/methodology.html",
+      "../dist/affiliate-disclosure.html",
+      "../dist/decision/fixture-scenario.html",
+      "../dist/tool/fixture-tool.html",
+      "../dist/_redirects",
+    ];
+
+    await Promise.all(builtFiles.map((path) => access(new URL(path, import.meta.url))));
+    await expect(access(new URL("../dist/methodology/index.html", import.meta.url))).rejects.toThrow();
+  }, 20_000);
 
   it("renders noindex metadata for status layouts", async () => {
     const html = await container.renderToString(BaseLayout, {

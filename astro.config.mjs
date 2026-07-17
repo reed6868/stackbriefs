@@ -6,6 +6,9 @@ export default defineConfig({
   site: "https://stackbriefs.pages.dev",
   trailingSlash: "never",
   output: "static",
+  build: {
+    format: "file",
+  },
   integrations: [mdx()],
   vite: {
     plugins: [tailwindcss()],
