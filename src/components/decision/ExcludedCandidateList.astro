@@ -1,9 +1,10 @@
 ---
 import type { DecisionEvaluation } from "../../domain/decision";
 import type { DomainCandidate, DomainScenario } from "../../domain/model";
+import { relevantCheckDate } from "../../domain/content-evidence";
 import EvidenceBadge from "./EvidenceBadge.astro";
 import ShortlistToggle from "./ShortlistToggle.astro";
-import { conditionReasonText, exclusionReasons, relevantCheckDate } from "./presentation";
+import { conditionReasonText, exclusionReasons } from "./presentation";
 
 interface Props {
   scenario: DomainScenario;

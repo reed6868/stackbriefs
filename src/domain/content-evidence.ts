@@ -5,6 +5,7 @@ import type {
   EvidenceResolution,
   GatingClaimReadiness,
 } from "./evidence-types";
+import type { DomainClaim } from "./model";
 
 export interface ResolvedClaimEvidence {
   candidateId: string;
@@ -20,6 +21,15 @@ export interface ContentEvidenceResolution {
 
 export function evidenceCellKey(candidateId: string, dimensionId: string) {
   return `${candidateId}:${dimensionId}`;
+}
+
+export function relevantCheckDate(claim: DomainClaim) {
+  const selectedSourceIds = new Set(claim.evidence.sourceIds);
+  return claim.sources
+    .filter((source) => selectedSourceIds.has(source.id))
+    .map((source) => source.lastCheckedAt)
+    .sort()
+    .at(-1);
 }
 
 export function toGatingClaimReadiness(

@@ -5,6 +5,8 @@ import type {
   DecisionEvaluation,
 } from "../domain/decision";
 import { evaluateDecision } from "../domain/decision";
+import { projectComparison } from "../domain/comparison";
+import { relevantCheckDate } from "../domain/content-evidence";
 import { downgradeScenarioEvidenceForBrowser } from "../domain/evidence";
 import type { DomainCandidate, DomainScenario } from "../domain/model";
 import {
@@ -26,17 +28,12 @@ import {
   evidenceStateLabel,
   exclusionReasons,
   formatDimensionValue,
-  relevantCheckDate,
   resultSummaryText,
 } from "../components/decision/presentation";
+import { createComparisonView } from "./comparison-view";
+import { requiredElement } from "./dom";
 
 type HistoryMode = "push" | "replace";
-
-function requiredElement<Element extends globalThis.Element>(root: ParentNode, selector: string) {
-  const element = root.querySelector<Element>(selector);
-  if (!element) throw new Error(`Decision controller requires ${selector}`);
-  return element;
-}
 
 function filterControls(form: HTMLFormElement) {
   return [...form.querySelectorAll<HTMLElement>("[data-filter-control]")].map((control) => ({
@@ -301,6 +298,7 @@ function mountDecisionController(root: HTMLElement) {
         .map((item) => [item.dataset.shortlistItem ?? "", item] as const),
     );
     const shortlistToggles = [...root.querySelectorAll<HTMLButtonElement>("[data-shortlist-toggle]")];
+    const comparisonView = createComparisonView(root);
     const forms = [desktopForm, mobileForm];
     let state: UrlState;
     let evaluation: DecisionEvaluation;
@@ -373,10 +371,18 @@ function mountDecisionController(root: HTMLElement) {
       document.documentElement.classList.toggle("shortlist-open", projection.items.length > 0);
     };
 
+    const syncComparison = () => {
+      comparisonView.render(
+        projectComparison(scenario, evaluation, state.shortlist),
+        state.comparison,
+      );
+    };
+
     const renderDecision = () => {
       evaluation = evaluateDecision(scenario, state.conditions);
       renderEvaluation(root, scenario, evaluation);
       syncShortlist();
+      syncComparison();
     };
 
     const applyConditions = (
@@ -395,6 +401,7 @@ function mountDecisionController(root: HTMLElement) {
       state = normalizeUrlState(scenario, { ...state, shortlist });
       writeHistory("replace");
       syncShortlist();
+      syncComparison();
     };
 
     const restoreLocation = (focusSummary: boolean) => {
@@ -482,6 +489,15 @@ function mountDecisionController(root: HTMLElement) {
 
     root.addEventListener("click", safely((event) => {
       const target = event.target as Element;
+      const compare = target.closest<HTMLButtonElement>("[data-compare-shortlist]");
+      if (compare && !compare.disabled) {
+        state = normalizeUrlState(scenario, { ...state, comparison: true });
+        writeHistory("push");
+        syncComparison();
+        comparisonView.focusHeading();
+        return;
+      }
+
       const toggle = target.closest<HTMLButtonElement>("[data-shortlist-toggle]");
       if (toggle?.dataset.toolSlug) {
         const toolSlug = toggle.dataset.toolSlug;
@@ -524,7 +540,15 @@ function mountDecisionController(root: HTMLElement) {
         restoreLocation(false);
         return;
       }
-      restoreLocation(true);
+      const wasComparisonOpen = state.comparison;
+      restoreLocation(false);
+      if (state.comparison) {
+        comparisonView.focusHeading();
+      } else if (wasComparisonOpen) {
+        compareShortlist.focus();
+      } else {
+        focusResultSummary(resultSummary);
+      }
     }), { signal: controllerEvents.signal });
 
     renderEvidenceSummaries(root, scenario);
