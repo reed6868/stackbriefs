@@ -187,6 +187,12 @@ button {
   text-decoration-thickness: 0.14em;
 }
 
+:where(.desktop-nav, .site-footer nav) a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+}
+
 .menu-button,
 .icon-button {
   display: grid;

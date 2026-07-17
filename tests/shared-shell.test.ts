@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -98,6 +100,14 @@ describe("shared shell", () => {
     expect(mobile).toMatch(/href="\/methodology"[^>]+aria-current="page"/);
     expect(html).toMatch(/<button[^>]+aria-label="Open menu"[^>]+aria-expanded="false"[^>]+aria-controls="site-menu"/);
     expect(html).toMatch(/<dialog[^>]+id="site-menu"[^>]+aria-labelledby="mobile-menu-title"/);
+  });
+
+  it("keeps standalone shell navigation targets at least 44 CSS pixels tall", async () => {
+    const css = await readFile(new URL("../src/styles/global.css", import.meta.url), "utf8");
+
+    expect(css).toMatch(
+      /:where\(\.desktop-nav, \.site-footer nav\) a\s*{[\s\S]*display:\s*inline-flex;[\s\S]*min-height:\s*2\.75rem;[\s\S]*align-items:\s*center;/,
+    );
   });
 
   it("keeps prohibited product and commercial navigation out of the shell", async () => {
