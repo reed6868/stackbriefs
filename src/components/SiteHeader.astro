@@ -24,6 +24,7 @@ const { currentPath } = Astro.props;
               <a
                 href={item.href}
                 aria-current={isCurrentPage(item.href, currentPath) ? "page" : undefined}
+                data-shell-section-link={item.href === "/#scenarios" ? "" : undefined}
               >
                 {item.label}
               </a>
@@ -49,7 +50,7 @@ const { currentPath } = Astro.props;
 <script>
   import { isCurrentSection } from "./navigation";
 
-  const sectionLinks = document.querySelectorAll<HTMLAnchorElement>('nav a[href*="#"]');
+  const sectionLinks = document.querySelectorAll<HTMLAnchorElement>("[data-shell-section-link]");
 
   const updateSectionState = () => {
     const currentUrl = new URL(window.location.href);

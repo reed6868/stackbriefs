@@ -23,6 +23,7 @@ const year = new Date().getFullYear();
               <a
                 href={item.href}
                 aria-current={isCurrentPage(item.href, currentPath) ? "page" : undefined}
+                data-shell-section-link={item.href === "/#scenarios" ? "" : undefined}
               >
                 {item.label}
               </a>

@@ -33,6 +33,22 @@ describe("shared shell", () => {
     expect(isCurrentSection("/#scenarios", new URL("https://stackbriefs.test/methodology#scenarios"))).toBe(false);
   });
 
+  it("scopes current-section updates to shell scenario links", async () => {
+    const html = await container.renderToString(BaseLayout, {
+      props: {
+        title: "Reading page | StackBriefs",
+        description: "Reading page",
+      },
+      request: new Request("https://stackbriefs.test/"),
+      slots: {
+        default: '<h1>Reading page</h1><nav aria-label="On this page"><a href="#details">Details</a></nav>',
+      },
+    });
+
+    expect(html.match(/<a[^>]+data-shell-section-link/g)).toHaveLength(3);
+    expect(section(html, "On this page")).not.toContain("data-shell-section-link");
+  });
+
   it("wraps Tab focus at both boundaries of the mobile menu", () => {
     const closeButton = { focus: vi.fn() };
     const finalLink = { focus: vi.fn() };
