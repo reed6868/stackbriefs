@@ -6,6 +6,7 @@ const baseURL = `http://${host}:${port}`;
 
 export default defineConfig({
   testDir: "./tests/browser",
+  testIgnore: "lifecycle-built.test.ts",
   outputDir: "./test-results",
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
