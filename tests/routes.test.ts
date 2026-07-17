@@ -70,6 +70,7 @@ describe("P0 route skeleton", () => {
     expect(config).toContain('site: "https://stackbriefs.pages.dev"');
     expect(config).toContain('trailingSlash: "never"');
     expect(config).toMatch(/build:\s*{[\s\S]*format:\s*"file"/);
+    expect(config).toContain("lifecycleRedirects");
     expect(redirects.trim()).toBe("/decision /#scenarios 301");
   });
 

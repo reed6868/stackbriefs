@@ -1,6 +1,7 @@
 import mdx from "@astrojs/mdx";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
+import { lifecycleRedirects } from "./src/integrations/lifecycle-redirects";
 
 export default defineConfig({
   site: "https://stackbriefs.pages.dev",
@@ -9,7 +10,7 @@ export default defineConfig({
   build: {
     format: "file",
   },
-  integrations: [mdx()],
+  integrations: [mdx(), lifecycleRedirects()],
   vite: {
     plugins: [tailwindcss()],
   },
