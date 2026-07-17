@@ -1,0 +1,38 @@
+---
+import type { DimensionContent } from "../../content/schema";
+import type { DecisionCondition } from "../../domain/decision";
+import { dimensionOptions } from "./presentation";
+
+interface Props {
+  dimension: DimensionContent;
+  condition?: DecisionCondition | undefined;
+  scope: "desktop" | "mobile";
+}
+
+const { dimension, condition, scope } = Astro.props;
+const id = `${scope}-${dimension.id}`;
+const options = dimensionOptions(dimension);
+const selectedValue = condition ? String(condition.value) : options[0]?.value;
+---
+
+<fieldset class="filter-control" data-filter-control data-dimension-id={dimension.id}>
+  <legend>{dimension.label}</legend>
+  <div class="filter-control__fields">
+    <label for={`${id}-mode`}>
+      <span>Use {dimension.label} as</span>
+      <select id={`${id}-mode`} data-filter-mode>
+        <option value="inactive" selected={!condition}>Not applied</option>
+        <option value="required" selected={condition?.mode === "required"}>Required</option>
+        <option value="optional" selected={condition?.mode === "optional"}>Optional</option>
+      </select>
+    </label>
+    <label for={`${id}-value`}>
+      <span>{dimension.label} value</span>
+      <select id={`${id}-value`} data-filter-value>
+        {options.map((option) => (
+          <option value={option.value} selected={option.value === selectedValue}>{option.label}</option>
+        ))}
+      </select>
+    </label>
+  </div>
+</fieldset>

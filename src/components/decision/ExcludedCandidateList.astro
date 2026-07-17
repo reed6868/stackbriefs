@@ -1,57 +1,62 @@
 ---
-import type { CandidateEvaluation, ConditionEvaluation, DecisionEvaluation } from "../../domain/decision";
+import type { DecisionEvaluation } from "../../domain/decision";
 import type { DomainCandidate, DomainScenario } from "../../domain/model";
 import EvidenceBadge from "./EvidenceBadge.astro";
-import { relevantCheckDate } from "./presentation";
+import { conditionReasonText, exclusionReasons, relevantCheckDate } from "./presentation";
 
 interface Props {
   scenario: DomainScenario;
   evaluation: DecisionEvaluation;
 }
 
-function exclusionReasons(candidate: CandidateEvaluation) {
-  return candidate.required.filter((condition) => condition.state !== "match");
-}
-
-function friendlyReason(reason: ConditionEvaluation) {
-  return reason.reason.replace(/^Dimension "([^"]+)" /, "$1 ");
-}
-
 const { scenario, evaluation } = Astro.props;
 const candidates = new Map<string, DomainCandidate>(scenario.candidates.map((candidate) => [candidate.id, candidate]));
+const exclusions = new Map(evaluation.exclusions.map((excluded) => [excluded.candidateId, excluded]));
+const orderedCandidateIds = [...evaluation.matches, ...evaluation.exclusions].map((candidate) => candidate.candidateId);
 ---
 
-{evaluation.exclusions.length > 0 && (
-  <section class="excluded-list" aria-labelledby="excluded-title">
+<section
+  class="excluded-list"
+  aria-labelledby="excluded-title"
+  data-excluded-list
+  hidden={evaluation.exclusions.length === 0}
+>
     <div class="excluded-list__heading">
       <p class="fixture-label">Outside the current result</p>
       <h2 id="excluded-title">Excluded tools</h2>
       <p>Known mismatches and unknown evidence remain separate.</p>
     </div>
     <div class="excluded-list__rows">
-      {evaluation.exclusions.map((excluded) => {
-        const candidate = candidates.get(excluded.candidateId);
+      {orderedCandidateIds.map((candidateId) => {
+        const candidate = candidates.get(candidateId);
         if (!candidate) return null;
+        const excluded = exclusions.get(candidateId);
+        const reasons = excluded ? exclusionReasons(excluded) : [];
         return (
-          <article class="excluded-candidate" data-evaluation-state={excluded.state}>
+          <article
+            class="excluded-candidate"
+            data-evaluation-state={excluded?.state}
+            data-excluded-candidate={candidate.id}
+            hidden={!excluded}
+          >
             <div class="excluded-candidate__heading">
               <div>
-                <p class="excluded-candidate__state">
-                  {excluded.state === "unknown" ? "Unknown evidence" : "Does not match"}
+                <p class="excluded-candidate__state" data-excluded-state-label>
+                  {excluded?.state === "unknown" ? "Unknown evidence" : "Does not match"}
                 </p>
                 <h3>{candidate.tool.name}</h3>
               </div>
               <a href={`/tool/${candidate.tool.slug}`}>View Tool details</a>
             </div>
-            <ul class="excluded-candidate__reasons">
-              {exclusionReasons(excluded).map((reason) => {
+            <ul class="excluded-candidate__reasons" data-exclusion-reasons>
+              {reasons.map((reason) => {
                 const claim = candidate.claims.find(
                   (candidateClaim) => candidateClaim.dimensionId === reason.dimensionId,
                 );
                 const lastCheckedAt = claim ? relevantCheckDate(claim) : undefined;
                 return (
                   <li>
-                    <span>{friendlyReason(reason)}</span>
+                    <span>{conditionReasonText(reason)}</span>
                     <div class="excluded-candidate__evidence">
                       <EvidenceBadge state={reason.evidenceState} />
                       {lastCheckedAt && (
@@ -70,4 +75,3 @@ const candidates = new Map<string, DomainCandidate>(scenario.candidates.map((can
       })}
     </div>
   </section>
-)}

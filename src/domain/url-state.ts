@@ -24,7 +24,10 @@ export interface SerializedUrlState {
   hash: string;
 }
 
-function parseValue(dimension: DimensionContent, value: string): DecisionConditionValue | undefined {
+export function parseDecisionConditionValue(
+  dimension: DimensionContent,
+  value: string,
+): DecisionConditionValue | undefined {
   if (dimension.valueType === "boolean") {
     if (value === "true") return true;
     if (value === "false") return false;
@@ -92,7 +95,7 @@ export function parseUrlState(scenario: DomainScenario, location: UrlLocationInp
     const dimensionId = rawValue.slice(0, separator);
     const dimension = dimensions.get(dimensionId);
     if (!dimension) continue;
-    const value = parseValue(dimension, rawValue.slice(separator + 1));
+    const value = parseDecisionConditionValue(dimension, rawValue.slice(separator + 1));
     if (value === undefined) continue;
     conditions.push({ dimensionId, value, mode: key === "r" ? "required" : "optional" });
   }

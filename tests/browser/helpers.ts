@@ -77,3 +77,19 @@ export async function captureResponsiveScreenshots(
     await testInfo.attach(`${name}-${viewport.width}`, { path, contentType: "image/png" });
   }
 }
+
+export async function captureViewportScreenshot(
+  page: Page,
+  testInfo: TestInfo,
+  name: string,
+  viewport: { width: number; height: number },
+) {
+  await page.setViewportSize(viewport);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  await expectNoPageOverflow(page);
+  const path = testInfo.outputPath(`${name}-${viewport.width}.png`);
+  await page.screenshot({ path, fullPage: false, animations: "disabled", caret: "hide" });
+  await testInfo.attach(`${name}-${viewport.width}`, { path, contentType: "image/png" });
+}

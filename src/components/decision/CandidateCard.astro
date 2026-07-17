@@ -1,8 +1,9 @@
 ---
-import type { CandidateEvaluation, ConditionEvaluation } from "../../domain/decision";
+import type { CandidateEvaluation } from "../../domain/decision";
 import type { DomainCandidate, DomainScenario } from "../../domain/model";
 import EvidenceBadge from "./EvidenceBadge.astro";
 import EvidenceSummary from "./EvidenceSummary.astro";
+import { conditionExplanationText } from "./presentation";
 
 interface Props {
   scenario: DomainScenario;
@@ -10,46 +11,50 @@ interface Props {
   evaluation: CandidateEvaluation;
 }
 
-function explanationText(explanation: ConditionEvaluation) {
-  if (explanation.state === "match") {
-    return `${explanation.label} matches ${explanation.mode === "required" ? "required condition" : "optional preference"}`;
-  }
-  if (explanation.state === "no_match") {
-    return `${explanation.label} does not match ${explanation.mode === "required" ? "required condition" : "optional preference"}`;
-  }
-  return `${explanation.label} has unknown evidence for the ${explanation.mode === "required" ? "required condition" : "optional preference"}`;
-}
-
 const { scenario, candidate, evaluation } = Astro.props;
 const hasConditions = evaluation.required.length + evaluation.optional.length > 0;
 ---
 
-<article class="candidate-card" data-evaluation-state={evaluation.state}>
+<article
+  class="candidate-card"
+  data-evaluation-state={evaluation.state}
+  data-candidate-card={candidate.id}
+>
   <div class="candidate-card__heading">
     <div>
-      <p class="candidate-card__state state-label" data-state="success">{hasConditions ? "Match" : "In scope"}</p>
+      <p class="candidate-card__state state-label" data-state="success" data-candidate-state-label>
+        {hasConditions ? "Match" : "In scope"}
+      </p>
       <h3>{candidate.tool.name}</h3>
     </div>
     <a href={`/tool/${candidate.tool.slug}`}>View Tool details</a>
   </div>
   <p class="candidate-card__summary">{candidate.tool.summary}</p>
-  {evaluation.explanations.length > 1 ? (
-    <section class="candidate-explanations" aria-label={`Why ${candidate.tool.name} matches`}>
+  <section
+    class="candidate-explanations"
+    aria-label={`Why ${candidate.tool.name} matches`}
+    data-candidate-explanations
+    hidden={!hasConditions}
+  >
       <h4>Why it appears</h4>
-      <ul>
+      <ul data-candidate-explanation-list>
         {evaluation.explanations.map((explanation) =>
           explanation.kind === "condition" ? (
             <li data-condition-state={explanation.state}>
-              <span>{explanationText(explanation)}</span>
+              <span>{conditionExplanationText(explanation)}</span>
               <EvidenceBadge state={explanation.evidenceState} />
             </li>
           ) : (
             <li class="candidate-limitation"><strong>Limitation:</strong> {explanation.text}</li>
           ))}
       </ul>
-    </section>
-  ) : (
-    <p class="candidate-limitation"><strong>Limitation:</strong> {candidate.limitation}</p>
-  )}
+  </section>
+  <p
+    class="candidate-limitation"
+    data-candidate-static-limitation
+    hidden={hasConditions}
+  >
+    <strong>Limitation:</strong> {candidate.limitation}
+  </p>
   <EvidenceSummary scenario={scenario} candidate={candidate} />
 </article>

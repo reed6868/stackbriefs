@@ -2,6 +2,7 @@
 import type { DimensionContent } from "../../content/schema";
 import type { DecisionCondition } from "../../domain/decision";
 import type { DomainScenario } from "../../domain/model";
+import DecisionFilterForm from "./DecisionFilterForm.astro";
 import { dimensionOptionLabels, formatDimensionValue } from "./presentation";
 
 interface Props {
@@ -27,7 +28,14 @@ const dimensions = [...scenario.dimensions].sort((left, right) => left.order - r
     <h2 id="criteria-title">Narrow the field</h2>
     <p>Review the available dimensions and supported values.</p>
   </div>
-  <ol class="criteria-list">
+  <button type="button" class="filter-dialog-trigger" data-filter-dialog-trigger hidden>
+    <span>Filters</span>
+    <span data-active-filter-count>0 active</span>
+  </button>
+  <div data-desktop-filter-panel hidden>
+    <DecisionFilterForm scenario={scenario} conditions={conditions} variant="desktop" />
+  </div>
+  <ol class="criteria-list" data-static-criteria>
     {dimensions.map((dimension) => {
       const condition = active.get(dimension.id);
       return (

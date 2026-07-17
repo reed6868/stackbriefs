@@ -1,0 +1,24 @@
+---
+import type { DecisionCondition } from "../../domain/decision";
+import type { DomainScenario } from "../../domain/model";
+import DecisionFilterForm from "./DecisionFilterForm.astro";
+
+interface Props {
+  scenario: DomainScenario;
+  conditions: readonly DecisionCondition[];
+}
+
+const { scenario, conditions } = Astro.props;
+---
+
+<dialog class="filter-dialog" aria-labelledby="filter-dialog-title" data-filter-dialog>
+  <div class="filter-sheet">
+    <div class="filter-sheet__heading">
+      <h2 id="filter-dialog-title">Filters</h2>
+      <button type="button" class="icon-button" aria-label="Close filters" data-mobile-cancel>
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <DecisionFilterForm scenario={scenario} conditions={conditions} variant="mobile" />
+  </div>
+</dialog>

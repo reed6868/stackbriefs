@@ -86,6 +86,33 @@ describe("static Decision workspace", () => {
     expect(meetingHtml).not.toContain("Alpha Writer");
   });
 
+  it("renders Scenario-derived native filter controls behind the static fallback", async () => {
+    const html = await render(writing);
+    const serializedScenario = html.match(/data-decision-scenario="([^"]+)"/)?.[1];
+
+    expect(html.match(/data-filter-control(?:\s|>)/g)).toHaveLength(6);
+    expect(html).toContain('data-decision-filter-form="desktop"');
+    expect(html).toContain('data-decision-filter-form="mobile"');
+    expect(html).toContain('data-filter-dialog-trigger hidden');
+    expect(html).toContain('data-desktop-filter-panel hidden');
+    expect(html).toContain('data-static-criteria');
+    expect(html).toContain('aria-labelledby="filter-dialog-title"');
+    expect(html).toContain("Use Commercial use permitted as");
+    expect(html).toContain("Commercial use permitted value");
+    expect(html).toContain('<option value="required">Required</option>');
+    expect(html).toContain('<option value="optional">Optional</option>');
+    expect(serializedScenario).toBeTruthy();
+
+    const scenarioData = JSON.parse(decodeURIComponent(serializedScenario!));
+    expect(scenarioData.slug).toBe("writing-assistants");
+    expect(scenarioData.dimensions.map((dimension: { id: string }) => dimension.id)).toEqual([
+      "commercial-use",
+      "export-formats",
+      "collaboration-mode",
+    ]);
+    expect(JSON.stringify(scenarioData)).not.toMatch(/affiliate|offer/i);
+  });
+
   it("renders match, no-match, and unknown labels with ordered explanations", async () => {
     const writingHtml = await render(writing, [
       condition("collaboration-mode", "shared-workspace"),
