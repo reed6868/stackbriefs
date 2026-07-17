@@ -24,10 +24,17 @@ describe("Production publication build", () => {
         },
       });
 
-      const home = await readFile(join(output, "index.html"), "utf8");
+      const [home, methodology] = await Promise.all([
+        readFile(join(output, "index.html"), "utf8"),
+        readFile(join(output, "methodology.html"), "utf8"),
+      ]);
       expect(home).not.toContain("/decision/meeting-assistants");
       expect(home).not.toContain("/decision/writing-assistants");
       expect(home).not.toContain('data-fixture="true"');
+      expect(methodology).toContain('href="/#scenarios"');
+      expect(methodology).toContain('href="/affiliate-disclosure"');
+      expect(methodology).not.toContain('href="/decision/');
+      await access(join(output, "affiliate-disclosure.html"));
       await expect(access(join(output, "decision"))).rejects.toThrow();
       await expect(access(join(output, "tool"))).rejects.toThrow();
     } finally {
