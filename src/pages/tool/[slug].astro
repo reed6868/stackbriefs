@@ -23,17 +23,12 @@ export function getStaticPaths() {
 }
 
 const { tool } = Astro.props;
-const scenarioTitle = "Writing assistants for small teams";
 ---
 
 <BaseLayout
   title={`${tool.name} | StackBriefs`}
   description="Non-production fixture for the StackBriefs Tool route."
-  breadcrumbs={[
-    { label: "Home", href: "/" },
-    { label: scenarioTitle, href: "/decision/writing-assistants" },
-    { label: tool.name },
-  ]}
+  breadcrumbs={[{ label: "Home", href: "/" }, { label: tool.name }]}
 >
   <article data-fixture="true">
     <p class="fixture-label">Fixture preview</p>
@@ -43,6 +38,6 @@ const scenarioTitle = "Writing assistants for small teams";
     <p>
       Evidence, limitations, hands-on status, and outbound-link separation are intentionally deferred. This page does not make a fit claim or name a winner.
     </p>
-    <p class="route-actions"><a href="/decision/writing-assistants">Return to the fixture Scenario</a></p>
+    <p class="route-actions"><a href="/#scenarios">Browse fixture Scenarios</a></p>
   </article>
 </BaseLayout>

@@ -85,6 +85,19 @@ describe("P0 route skeleton", () => {
 
     await Promise.all(builtFiles.map((path) => access(new URL(path, import.meta.url))));
     await expect(access(new URL("../dist/methodology/index.html", import.meta.url))).rejects.toThrow();
+
+    const [meetingDecision, writingDecision, tool] = await Promise.all([
+      readFile(new URL("../dist/decision/meeting-assistants.html", import.meta.url), "utf8"),
+      readFile(new URL("../dist/decision/writing-assistants.html", import.meta.url), "utf8"),
+      readFile(new URL("../dist/tool/fixture-tool.html", import.meta.url), "utf8"),
+    ]);
+
+    for (const decision of [meetingDecision, writingDecision]) {
+      expect(decision).not.toContain('href="/tool/fixture-tool"');
+      expect(decision).toContain('href="/#scenarios"');
+    }
+    expect(tool).not.toContain('href="/decision/');
+    expect(tool).toContain('href="/#scenarios"');
   }, 20_000);
 
   it("renders noindex metadata for status layouts", async () => {
