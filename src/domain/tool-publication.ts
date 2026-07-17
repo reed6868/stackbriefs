@@ -12,6 +12,7 @@ export function assembleToolOutcomes(
   scenarioOutcomes: readonly ScenarioPublicationOutcome[],
   target: BuildTarget,
   referenceIssues: ReadonlyMap<string, readonly PublicationIssue[]>,
+  invalidToolIds: ReadonlySet<string>,
 ) {
   const exposedScenarioIds = new Map<string, Set<string>>();
   scenarioOutcomes.forEach((outcome) => {
@@ -29,6 +30,9 @@ export function assembleToolOutcomes(
     .map((tool): ToolPublicationOutcome => {
       if (fixtureExcluded(tool.fixture, target)) {
         return { kind: "hidden", id: tool.id, slug: tool.slug, fixture: true, reason: "fixture_excluded" };
+      }
+      if (invalidToolIds.has(tool.id)) {
+        return { kind: "hidden", id: tool.id, slug: tool.slug, fixture: tool.fixture, reason: "invalid" };
       }
       if (tool.status === "draft") {
         if (tool.firstPublishedAt) {

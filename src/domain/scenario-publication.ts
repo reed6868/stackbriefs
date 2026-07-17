@@ -170,6 +170,7 @@ export function assembleScenarioOutcomes(
   graph: ContentGraph,
   options: PublicationOptions,
   referenceIssues: ReadonlyMap<string, readonly PublicationIssue[]>,
+  invalidScenarioIds: ReadonlySet<string>,
 ) {
   const scenariosBySlug = new Map(graph.scenarios.map((scenario) => [scenario.slug, scenario]));
 
@@ -178,6 +179,9 @@ export function assembleScenarioOutcomes(
     .map((scenario): ScenarioPublicationOutcome => {
       if (fixtureExcluded(scenario.fixture, options.target)) {
         return { kind: "hidden", id: scenario.id, slug: scenario.slug, fixture: true, reason: "fixture_excluded" };
+      }
+      if (invalidScenarioIds.has(scenario.id)) {
+        return { kind: "hidden", id: scenario.id, slug: scenario.slug, fixture: scenario.fixture, reason: "invalid" };
       }
       if (scenario.status === "draft") {
         if (scenario.firstPublishedAt) {

@@ -11,9 +11,20 @@ export type { PublicationAssembly, PublicationOptions } from "./model";
 
 export function assemblePublication(graph: ContentGraph, options: PublicationOptions): PublicationAssembly {
   const diagnostics = collectReferenceDiagnostics(graph, options.publicationHistory ?? []);
-  const scenarioOutcomes = assembleScenarioOutcomes(graph, options, diagnostics.scenarioIssues);
+  const scenarioOutcomes = assembleScenarioOutcomes(
+    graph,
+    options,
+    diagnostics.scenarioIssues,
+    diagnostics.invalidScenarioIds,
+  );
   const scenarioIssues = scenarioOutcomes.flatMap((outcome) => (outcome.kind === "blocked" ? outcome.issues : []));
-  const toolOutcomes = assembleToolOutcomes(graph, scenarioOutcomes, options.target, diagnostics.toolIssues);
+  const toolOutcomes = assembleToolOutcomes(
+    graph,
+    scenarioOutcomes,
+    options.target,
+    diagnostics.toolIssues,
+    diagnostics.invalidToolIds,
+  );
   const toolIssues = toolOutcomes.flatMap((outcome) => (outcome.kind === "blocked" ? outcome.issues : []));
   const exposedToolIds = new Set(
     toolOutcomes.filter((outcome) => outcome.kind === "exposed-tool").map((outcome) => outcome.id),

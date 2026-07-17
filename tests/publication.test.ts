@@ -205,7 +205,23 @@ describe("publication assembly", () => {
       firstPublishedAt: "2026-07-10",
     };
 
-    const assembly = assemblePublication(graph, development);
+    const assembly = assemblePublication(graph, {
+      ...development,
+      publicationHistory: [
+        {
+          recordType: "scenario",
+          id: graph.scenarios[0]!.id,
+          slug: graph.scenarios[0]!.slug,
+          firstPublishedAt: "2026-07-10",
+        },
+        {
+          recordType: "tool",
+          id: graph.tools[0]!.id,
+          slug: graph.tools[0]!.slug,
+          firstPublishedAt: "2026-07-10",
+        },
+      ],
+    });
     const writing = scenarioOutcome(assembly, "writing-assistants");
 
     expect(writing.kind).toBe("blocked");
@@ -288,9 +304,52 @@ describe("publication assembly", () => {
 
     expect(assembly.issues).toContainEqual(
       expect.objectContaining({
-        code: "invalid_content_reference",
+        code: "invalid_publication_history",
         message: expect.stringContaining('published scenario "deleted-published-scenario" must remain present'),
       }),
+    );
+    expect(assembly.releaseReady).toBe(false);
+  });
+
+  it("hides records that reuse reserved publication-history slugs", async () => {
+    const graph = await loadGraph();
+    graph.scenarios[0]!.status = "retired";
+    graph.scenarios[0]!.firstPublishedAt = "2026-07-10";
+    graph.tools[0]!.status = "retired";
+    graph.tools[0]!.firstPublishedAt = "2026-07-10";
+
+    const assembly = assemblePublication(graph, {
+      ...development,
+      publicationHistory: [
+        {
+          recordType: "scenario",
+          id: "different-scenario-id",
+          slug: graph.scenarios[0]!.slug,
+          firstPublishedAt: "2026-07-10",
+        },
+        {
+          recordType: "tool",
+          id: "different-tool-id",
+          slug: graph.tools[0]!.slug,
+          firstPublishedAt: "2026-07-10",
+        },
+      ],
+    });
+
+    expect(scenarioOutcome(assembly, graph.scenarios[0]!.slug)).toMatchObject({ kind: "hidden", reason: "invalid" });
+    expect(assembly.toolOutcomes.find((outcome) => outcome.id === graph.tools[0]!.id)).toMatchObject({
+      kind: "hidden",
+      reason: "invalid",
+    });
+    expect(assembly.publicInputs.statusScenarioSlugs).not.toContain(graph.scenarios[0]!.slug);
+    expect(assembly.publicInputs.statusToolSlugs).not.toContain(graph.tools[0]!.slug);
+    expect(assembly.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "invalid_publication_history",
+          message: expect.stringContaining("remains reserved"),
+        }),
+      ]),
     );
     expect(assembly.releaseReady).toBe(false);
   });

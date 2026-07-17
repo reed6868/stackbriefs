@@ -8,6 +8,8 @@ export interface ReferenceDiagnostics {
   toolIssues: ReadonlyMap<string, readonly PublicationIssue[]>;
   offerIssues: ReadonlyMap<string, readonly PublicationIssue[]>;
   globalIssues: readonly PublicationIssue[];
+  invalidScenarioIds: ReadonlySet<string>;
+  invalidToolIds: ReadonlySet<string>;
 }
 
 function append(map: Map<string, PublicationIssue[]>, id: string, value: PublicationIssue) {
@@ -29,11 +31,21 @@ export function collectReferenceDiagnostics(graph: ContentGraph, publicationHist
   const toolIssues = new Map<string, PublicationIssue[]>();
   const offerIssues = new Map<string, PublicationIssue[]>();
   const globalIssues: PublicationIssue[] = [];
+  const invalidScenarioIds = new Set<string>();
+  const invalidToolIds = new Set<string>();
   const candidates = new Map(graph.candidates.map((candidate) => [candidate.id, candidate]));
-  const validationIssues = [
-    ...validateReferences(graph),
-    ...validatePublicationHistory(graph, publicationHistory),
-  ];
+  const markInvalidScenario = (scenarioId: string, diagnostic: PublicationIssue) => {
+    invalidScenarioIds.add(scenarioId);
+    append(scenarioIssues, scenarioId, diagnostic);
+  };
+  const markInvalidTool = (toolId: string, diagnostic: PublicationIssue) => {
+    invalidToolIds.add(toolId);
+    append(toolIssues, toolId, diagnostic);
+    graph.candidates
+      .filter((candidate) => candidate.toolId === toolId)
+      .forEach((candidate) => append(scenarioIssues, candidate.scenarioId, diagnostic));
+  };
+  const validationIssues = validateReferences(graph);
 
   validationIssues.forEach((validationIssue) => {
     const [collection, index] = validationIssue.path;
@@ -89,23 +101,51 @@ export function collectReferenceDiagnostics(graph: ContentGraph, publicationHist
       offer ? append(offerIssues, offer.id, diagnostic) : globalIssues.push(diagnostic);
       return;
     }
-    if (collection === "publicationHistory" && typeof index === "number") {
-      const entry = publicationHistory[index];
-      if (!entry) {
-        globalIssues.push(diagnostic);
-      } else if (entry.recordType === "scenario") {
-        graph.scenarios.some((scenario) => scenario.id === entry.id)
-          ? append(scenarioIssues, entry.id, diagnostic)
-          : globalIssues.push(diagnostic);
-      } else {
-        graph.tools.some((tool) => tool.id === entry.id)
-          ? append(toolIssues, entry.id, diagnostic)
-          : globalIssues.push(diagnostic);
-      }
-      return;
-    }
     globalIssues.push(diagnostic);
   });
 
-  return { scenarioIssues, toolIssues, offerIssues, globalIssues } satisfies ReferenceDiagnostics;
+  validatePublicationHistory(graph, publicationHistory).forEach((validationIssue) => {
+    const [collection, index] = validationIssue.path;
+    const diagnostic = publicationIssue(
+      "invalid_publication_history",
+      formatPath(graph, validationIssue),
+      validationIssue.message,
+    );
+    globalIssues.push(diagnostic);
+
+    if (collection === "publicationHistory" && typeof index === "number") {
+      const entry = publicationHistory[index];
+      if (!entry) return;
+      if (entry.recordType === "scenario") {
+        const scenario = graph.scenarios.find((candidate) => candidate.id === entry.id);
+        if (!scenario) return;
+        markInvalidScenario(scenario.id, diagnostic);
+        return;
+      }
+      const tool = graph.tools.find((candidate) => candidate.id === entry.id);
+      if (!tool) return;
+      markInvalidTool(tool.id, diagnostic);
+      return;
+    }
+    if (collection === "scenarios" && typeof index === "number") {
+      const scenario = graph.scenarios[index];
+      if (!scenario) return;
+      markInvalidScenario(scenario.id, diagnostic);
+      return;
+    }
+    if (collection === "tools" && typeof index === "number") {
+      const tool = graph.tools[index];
+      if (!tool) return;
+      markInvalidTool(tool.id, diagnostic);
+    }
+  });
+
+  return {
+    scenarioIssues,
+    toolIssues,
+    offerIssues,
+    globalIssues,
+    invalidScenarioIds,
+    invalidToolIds,
+  } satisfies ReferenceDiagnostics;
 }

@@ -66,7 +66,7 @@ export interface PublishedScenarioOutcome extends RouteOutcomeBase {
 
 export interface HiddenScenarioOutcome extends RouteOutcomeBase {
   kind: "hidden";
-  reason: "draft" | "fixture_excluded" | "never_published";
+  reason: "draft" | "fixture_excluded" | "invalid" | "never_published";
 }
 
 export interface BlockedScenarioOutcome extends RouteOutcomeBase {
@@ -105,7 +105,7 @@ export interface ExposedToolOutcome extends RouteOutcomeBase {
 
 export interface HiddenToolOutcome extends RouteOutcomeBase {
   kind: "hidden";
-  reason: "draft" | "fixture_excluded" | "not_exposed" | "never_published";
+  reason: "draft" | "fixture_excluded" | "invalid" | "not_exposed" | "never_published";
 }
 
 export interface BlockedToolOutcome extends RouteOutcomeBase {
