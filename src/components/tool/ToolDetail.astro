@@ -1,5 +1,7 @@
 ---
 import type { ToolDetailProjection } from "../../domain/tool-detail";
+import ClaimRow from "./ClaimRow.astro";
+import OfferPanel from "./OfferPanel.astro";
 
 interface Props {
   detail: ToolDetailProjection;
@@ -11,11 +13,7 @@ const initials = detail.tool.name
   .slice(0, 2)
   .map((part) => part[0]?.toUpperCase())
   .join("");
-const serializedContexts = encodeURIComponent(JSON.stringify(detail.contexts.map((context) => ({
-  scenarioSlug: context.scenarioSlug,
-  scenarioTitle: context.scenarioTitle,
-  urlStateScenario: context.urlStateScenario,
-}))));
+const serializedDetail = encodeURIComponent(JSON.stringify(detail));
 const handsOnLabels = {
   tested: "Tested",
   partially_tested: "Partially tested",
@@ -28,7 +26,7 @@ const handsOnLabels = {
   class="tool-detail"
   data-fixture={detail.tool.fixture ? "true" : undefined}
   data-tool-detail-controller
-  data-tool-contexts={serializedContexts}
+  data-tool-projection={serializedDetail}
 >
   <nav class="breadcrumbs" aria-label="Breadcrumb">
     <ol>
@@ -60,6 +58,7 @@ const handsOnLabels = {
       <a
         class="primary-button tool-identity__official"
         href={detail.tool.officialUrl}
+        data-link-type="official"
         target="_blank"
         rel="noopener noreferrer"
       >Official Link</a>
@@ -93,6 +92,13 @@ const handsOnLabels = {
 
         <p class="tool-context__limitation"><strong>Limitation:</strong> {context.limitation}</p>
 
+        <section class="tool-claims" aria-labelledby={`tool-claims-${context.scenarioSlug}`}>
+          <h4 id={`tool-claims-${context.scenarioSlug}`}>Current evidence</h4>
+          <dl>
+            {context.claims.map((claim) => <ClaimRow claim={claim} />)}
+          </dl>
+        </section>
+
         <section class="tool-checklist" aria-labelledby={`tool-checklist-${context.scenarioSlug}`}>
           <h4 id={`tool-checklist-${context.scenarioSlug}`}>Verify before using</h4>
           <ul>
@@ -102,6 +108,8 @@ const handsOnLabels = {
       </section>
     ))}
   </section>
+
+  {detail.offer && <OfferPanel offer={detail.offer} />}
 </article>
 
 <script>

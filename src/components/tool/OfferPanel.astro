@@ -1,0 +1,53 @@
+---
+import EvidenceBadge from "../decision/EvidenceBadge.astro";
+import type { ToolOfferProjection } from "../../domain/tool-evidence";
+
+interface Props {
+  offer: ToolOfferProjection;
+}
+
+const { offer } = Astro.props;
+---
+
+<aside class="tool-offer" aria-labelledby="tool-offer-title" data-tool-offer>
+  <p class="fixture-label">Optional commercial path</p>
+  <div class="tool-offer__heading">
+    <div>
+      <h2 id="tool-offer-title">Affiliate Offer</h2>
+      <p>{offer.statusLabel}</p>
+    </div>
+    <EvidenceBadge state={offer.evidence.state} />
+  </div>
+  {offer.terms && <p class="tool-offer__terms">{offer.terms}</p>}
+  <dl class="tool-offer__meta">
+    {offer.region && <div><dt>Region</dt><dd>{offer.region}</dd></div>}
+    <div>
+      <dt>Checked</dt>
+      <dd><time datetime={offer.lastCheckedAt}>{offer.lastCheckedAt}</time></dd>
+    </div>
+  </dl>
+  {offer.sources.length > 0 && (
+    <p class="tool-offer__evidence">
+      Status evidence:
+      {offer.sources.map((source) => (
+        <a
+          href={source.sourceUrl}
+          data-link-type="evidence"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Source</a>
+      ))}
+    </p>
+  )}
+  <a
+    class="primary-button tool-offer__cta"
+    href={offer.affiliateUrl}
+    data-link-type="offer"
+    target="_blank"
+    rel="noopener sponsored"
+  >View Affiliate Offer</a>
+  <p class="tool-offer__disclosure">
+    StackBriefs may receive compensation if you use this link. Commercial data never affects eligibility or ordering.
+    <a href="/affiliate-disclosure">Read the Affiliate disclosure</a>.
+  </p>
+</aside>

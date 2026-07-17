@@ -1,13 +1,19 @@
-import type { ToolContextReference } from "../domain/tool-detail";
-import { resolveToolEntryContext } from "../domain/tool-detail";
+import { evidenceStateLabel, formatDimensionValue } from "../components/decision/presentation";
+import {
+  downgradeToolDetailForBrowser,
+  resolveToolEntryContext,
+  type ToolDetailProjection,
+} from "../domain/tool-detail";
 import { requiredElement } from "./dom";
 
 function mountToolDetailController(root: HTMLElement) {
-  const encodedContexts = root.dataset.toolContexts;
-  if (!encodedContexts) return;
-  const contexts = JSON.parse(decodeURIComponent(encodedContexts)) as ToolContextReference[];
+  const encodedProjection = root.dataset.toolProjection;
+  if (!encodedProjection) return;
+  const deployedDetail = JSON.parse(decodeURIComponent(encodedProjection)) as ToolDetailProjection;
+  const browserAsOf = new Date().toISOString().slice(0, 10);
+  const detail = downgradeToolDetailForBrowser(deployedDetail, browserAsOf);
   const params = new URLSearchParams(location.search);
-  const resolved = resolveToolEntryContext({ contexts }, {
+  const resolved = resolveToolEntryContext(detail, {
     scenarioSlug: params.get("scenario") ?? undefined,
     returnValue: params.get("return") ?? undefined,
     origin: location.origin,
@@ -27,6 +33,28 @@ function mountToolDetailController(root: HTMLElement) {
     root.querySelector<HTMLElement>(`[data-tool-context="${resolved.context.scenarioSlug}"]`)
       ?.setAttribute("data-active-context", "true");
   }
+
+  detail.contexts.forEach((context) => {
+    const contextElement = requiredElement<HTMLElement>(root, `[data-tool-context="${context.scenarioSlug}"]`);
+    const claimRows = new Map(
+      [...contextElement.querySelectorAll<HTMLElement>("[data-tool-claim]")]
+        .map((row) => [row.dataset.toolClaim ?? "", row] as const),
+    );
+    context.claims.forEach((claim) => {
+      const row = claimRows.get(claim.dimensionId);
+      if (!row) throw new Error(`Tool detail controller requires Claim row for ${claim.dimensionId}`);
+      requiredElement<HTMLElement>(row, "[data-evidence-value]").textContent =
+        formatDimensionValue(claim.dimension, claim.evidence.value);
+      const badge = requiredElement<HTMLElement>(row, ".evidence-badge");
+      badge.dataset.evidenceState = claim.evidence.state;
+      badge.textContent = evidenceStateLabel(claim.evidence.state);
+      requiredElement<HTMLElement>(row, "[data-evidence-explanation]").textContent =
+        claim.evidence.explanation;
+    });
+  });
+
+  const offer = root.querySelector<HTMLElement>("[data-tool-offer]");
+  if (offer) offer.hidden = !detail.offer;
 
   const image = root.querySelector<HTMLImageElement>("[data-tool-logo-image]");
   const fallback = requiredElement<HTMLElement>(root, "[data-tool-logo-fallback]");

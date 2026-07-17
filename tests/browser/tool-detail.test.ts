@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import {
   assertNoSeriousAxeViolations,
+  captureResponsiveScreenshots,
   captureViewportScreenshot,
   expectNoPageOverflow,
   watchPageErrors,
@@ -9,6 +10,7 @@ import {
 
 const decisionPath = "/decision/writing-assistants";
 const toolPath = "/tool/alpha-writer";
+const offerToolPath = "/tool/charlie-meet";
 
 test("Scenario entry preserves validated Decision state and context", async ({ page }, testInfo) => {
   const pageErrors = watchPageErrors(page);
@@ -72,6 +74,11 @@ test("direct mobile entry keeps identity neutral and uses the Logo fallback", as
   await expect(page.getByRole("heading", { name: "Where this Tool is evaluated" })).toBeVisible();
   await expect(page.getByText("Partially tested", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Verify before using" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Current evidence" })).toBeVisible();
+  await expect(page.locator("[data-tool-claim]")).toHaveCount(3);
+  await expect(page.getByText("Verified fact", { exact: true })).toHaveCount(3);
+  await expect(page.locator('[data-link-type="evidence"]')).toHaveCount(3);
+  await expect(page.locator("[data-tool-offer]")).toHaveCount(0);
   await expect(page.getByText(/winner|best overall|score|rank/i)).toHaveCount(0);
 
   await expectNoPageOverflow(page);
@@ -82,6 +89,55 @@ test("direct mobile entry keeps identity neutral and uses the Logo fallback", as
       height: 800,
     });
   }
+  expect(pageErrors, pageErrors.join("\n")).toEqual([]);
+});
+
+test("qualifying Affiliate Offer stays separate from Official and Evidence links", async ({ page }, testInfo) => {
+  await page.clock.setFixedTime(new Date("2026-07-17T12:00:00Z"));
+  const pageErrors = watchPageErrors(page);
+  await page.goto(offerToolPath);
+
+  const official = page.locator('[data-link-type="official"]');
+  const evidence = page.locator('[data-link-type="evidence"]');
+  const offer = page.locator("[data-tool-offer]");
+  const offerLink = page.locator('[data-link-type="offer"]');
+  await expect(official).toBeVisible();
+  await expect(official).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(evidence.first()).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(offer).toBeVisible();
+  await expect(offer).toContainText("Affiliate Offer");
+  await expect(offer).toContainText("Verified deal");
+  await expect(offer).toContainText("20% off the documented business plan");
+  await expect(offer).toContainText("StackBriefs may receive compensation");
+  await expect(offerLink).toHaveAttribute("rel", "noopener sponsored");
+  await expect(offerLink).toHaveAttribute("target", "_blank");
+
+  await page.getByText("Evidence details", { exact: true }).first().click();
+  await expect(evidence.first()).toBeVisible();
+  await expectNoPageOverflow(page);
+  await assertNoSeriousAxeViolations(page);
+  if (testInfo.project.name === "chromium") {
+    await captureResponsiveScreenshots(page, testInfo, "tool-detail-affiliate-offer");
+  }
+  expect(pageErrors, pageErrors.join("\n")).toEqual([]);
+});
+
+test("browser expiry downgrades Claims and hides an expired Affiliate Offer", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2030-01-01T12:00:00Z"));
+  const pageErrors = watchPageErrors(page);
+  await page.goto(offerToolPath);
+
+  await expect(page.locator("[data-tool-claim]").getByText("Needs recheck", { exact: true })).toHaveCount(4);
+  await expect(page.locator("[data-tool-claim]").getByText("No current value", { exact: true })).toHaveCount(4);
+  await expect(page.locator('.evidence-badge:visible', { hasText: "Verified fact" })).toHaveCount(0);
+  await expect(page.locator("[data-evidence-explanation]").first()).toContainText(
+    "browser downgrade requires recheck",
+  );
+  await expect(page.locator("[data-tool-offer]")).toBeHidden();
+  await expect(page.locator('[data-link-type="offer"]')).toBeHidden();
+  await expect(page.locator('[data-link-type="official"]')).toBeVisible();
+  await expectNoPageOverflow(page);
+  await assertNoSeriousAxeViolations(page);
   expect(pageErrors, pageErrors.join("\n")).toEqual([]);
 });
 
